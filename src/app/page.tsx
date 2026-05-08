@@ -202,8 +202,12 @@ function Sidebar() {
 // ─── HOME DASHBOARD ────────────────────────────────────────────────
 function HomePage() {
   const { setCurrentPage, darkMode, language, studyHistory, completedQuizzes, completedModules, weakAreas } = useAppStore()
-  const [quoteIdx] = useState(() => Math.floor(Math.random() * quotes.length))
+  const [quoteIdx, setQuoteIdx] = useState(0)
   const quote = quotes[quoteIdx]
+
+  useEffect(() => {
+    setQuoteIdx(Math.floor(Math.random() * quotes.length))
+  }, [])
   const totalQ = questions.length
   const avgScore = completedQuizzes.length > 0
     ? Math.round(completedQuizzes.reduce((s, q) => s + q.score, 0) / completedQuizzes.length)
@@ -539,7 +543,12 @@ function AssessmentPage() {
   const [showResults, setShowResults] = useState(false)
   const [timeLeft, setTimeLeft] = useState(0)
   const [answeredCurrent, setAnsweredCurrent] = useState(false)
+  const [showConfirmFinish, setShowConfirmFinish] = useState(false)
+  const [reviewMode, setReviewMode] = useState(false)
+  const [reviewIdx, setReviewIdx] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [lastQuestions, setLastQuestions] = useState<AssessmentQuestion[]>([])
+  const [lastAnswers, setLastAnswers] = useState<(number | null)[]>([])
 
   const areas = useMemo(() => ['all', ...Array.from(new Set(questions.map(q => q.area)))], [])
 
@@ -557,6 +566,9 @@ function AssessmentPage() {
     const total = currentAssessment.questions.length
     const pct = Math.round((correct / total) * 100)
     const timeTaken = Math.round((Date.now() - currentAssessment.startTime) / 1000)
+    // Save questions and answers for review before finishing
+    setLastQuestions([...currentAssessment.questions])
+    setLastAnswers([...currentAssessment.answers])
     finishAssessment({
       id: `result-${Date.now()}`, score: pct, total, date: new Date().toISOString(),
       area: config.area, timeTaken, answers: currentAssessment.answers
@@ -654,7 +666,24 @@ function AssessmentPage() {
                   </span>
                 </div>
               )) : (
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Score: {latest.score}% | Time: {Math.round(latest.timeTaken / 60)} min</p>
+                <div className="space-y-3">
+                  <div className={`flex items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-gray-50'}`}>
+                    <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Final Score</span>
+                    <span className={`text-lg font-bold ${passed ? 'text-emerald-600' : 'text-red-600'}`}>{latest.score}%</span>
+                  </div>
+                  <div className={`flex items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-gray-50'}`}>
+                    <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Time Taken</span>
+                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{Math.round(latest.timeTaken / 60)} min {latest.timeTaken % 60}s</span>
+                  </div>
+                  <div className={`flex items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-gray-50'}`}>
+                    <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Questions Answered</span>
+                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{latest.answers.filter(a => a !== null).length}/{latest.total}</span>
+                  </div>
+                  <div className={`flex items-center justify-between p-3 rounded-lg ${darkMode ? 'bg-black/20' : 'bg-gray-50'}`}>
+                    <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Passing Score</span>
+                    <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>70%</span>
+                  </div>
+                </div>
               )}
             </div>
           </CardContent>
@@ -663,6 +692,11 @@ function AssessmentPage() {
           <Button onClick={() => { setShowResults(false); setAnsweredCurrent(false) }} className="bg-red-600 hover:bg-red-700">
             <RotateCcw className="w-4 h-4 mr-2" /> {t('takeNewExam', language)}
           </Button>
+          {lastQuestions.length > 0 && (
+            <Button variant="outline" onClick={() => { setReviewMode(true); setReviewIdx(0) }} className="border-blue-300 text-blue-600 hover:bg-blue-50">
+              <Eye className="w-4 h-4 mr-2" /> Review Answers
+            </Button>
+          )}
           <Button variant="outline" onClick={() => setCurrentPage('study-review')}>
             <FileText className="w-4 h-4 mr-2" /> {t('reviewAnswers', language)}
           </Button>
@@ -752,7 +786,7 @@ function AssessmentPage() {
               {t('next', language)} <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           ) : (
-            <Button onClick={handleFinish} className="bg-emerald-600 hover:bg-emerald-700">
+            <Button onClick={() => setShowConfirmFinish(true)} className="bg-emerald-600 hover:bg-emerald-700">
               {t('finish', language)} <Check className="w-4 h-4 ml-1" />
             </Button>
           )}
@@ -777,6 +811,119 @@ function AssessmentPage() {
               {idx + 1}
             </button>
           ))}
+        </div>
+
+        {/* Confirm Finish Dialog */}
+        <Dialog open={showConfirmFinish} onOpenChange={setShowConfirmFinish}>
+          <DialogContent className={darkMode ? 'bg-[#1b2838] border-white/10' : ''}>
+            <DialogHeader>
+              <DialogTitle className={darkMode ? 'text-white' : ''}>Finish Assessment?</DialogTitle>
+              <DialogDescription className={darkMode ? 'text-gray-400' : ''}>
+                {currentAssessment && (
+                  <>
+                    You have answered {currentAssessment.answers.filter(a => a !== null).length} out of {currentAssessment.questions.length} questions.
+                    {currentAssessment.answers.filter(a => a === null).length > 0 && (
+                      <span className="block mt-1 text-amber-600 font-medium">
+                        Warning: {currentAssessment.answers.filter(a => a === null).length} question(s) are unanswered!
+                      </span>
+                    )}
+                  </>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowConfirmFinish(false)}>Continue Exam</Button>
+              <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { setShowConfirmFinish(false); handleFinish() }}>
+                Submit Answers
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    )
+  }
+
+  // Review Mode - shows correct/incorrect answers after exam
+  if (reviewMode && lastQuestions.length > 0) {
+    const rq = lastQuestions[reviewIdx]
+    const userAns = lastAnswers[reviewIdx]
+    const isCorrect = userAns === rq.correctAnswer
+    return (
+      <div className="space-y-4 max-w-2xl mx-auto">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="ghost" size="sm" onClick={() => setReviewMode(false)}>
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back to Results
+          </Button>
+          <Badge variant="outline" className="text-xs">
+            {reviewIdx + 1} / {lastQuestions.length}
+          </Badge>
+        </div>
+        <Progress value={((reviewIdx + 1) / lastQuestions.length) * 100} className="h-2" />
+        <Card className={`overflow-hidden ${darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''} ${isCorrect ? 'border-l-4 border-l-emerald-500' : 'border-l-4 border-l-red-500'}`}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Badge className={isCorrect ? 'bg-emerald-600' : 'bg-red-600'}>
+                {isCorrect ? 'Correct' : 'Incorrect'}
+              </Badge>
+              <Badge variant="outline" className="text-xs">{rq.area}</Badge>
+            </div>
+            <p className={`text-lg font-medium mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{rq.question}</p>
+            <div className="space-y-2">
+              {rq.options.map((opt, idx) => {
+                let optClass = darkMode ? 'border-white/10 text-gray-300' : 'border-gray-200 text-gray-700'
+                if (idx === rq.correctAnswer) optClass = 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                else if (idx === userAns && !isCorrect) optClass = 'border-red-500 bg-red-50 text-red-700'
+                return (
+                  <div key={idx} className={`p-3 rounded-lg border-2 ${optClass}`}>
+                    <div className="flex items-center gap-3">
+                      <span className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                        idx === rq.correctAnswer ? 'border-emerald-500 bg-emerald-500 text-white' :
+                        idx === userAns && !isCorrect ? 'border-red-500 bg-red-500 text-white' : 'border-current'
+                      }`}>
+                        {String.fromCharCode(65 + idx)}
+                      </span>
+                      <span className="text-sm">{opt}</span>
+                      {idx === rq.correctAnswer && <Check className="w-4 h-4 text-emerald-500 ml-auto" />}
+                      {idx === userAns && !isCorrect && <X className="w-4 h-4 text-red-500 ml-auto" />}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            {rq.explanation && (
+              <Alert className={`mt-4 ${isCorrect ? 'border-emerald-300 bg-emerald-50' : 'border-red-300 bg-red-50'}`}>
+                <AlertDescription className={`text-sm ${isCorrect ? 'text-emerald-700' : 'text-red-700'}`}>
+                  {rq.explanation}
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+        <div className="flex items-center justify-between">
+          <Button variant="outline" onClick={() => setReviewIdx(Math.max(0, reviewIdx - 1))} disabled={reviewIdx === 0}>
+            <ChevronLeft className="w-4 h-4 mr-1" /> Previous
+          </Button>
+          <Button onClick={() => setReviewIdx(Math.min(lastQuestions.length - 1, reviewIdx + 1))} disabled={reviewIdx >= lastQuestions.length - 1} className="bg-red-600 hover:bg-red-700">
+            Next <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
+        {/* Quick Navigation */}
+        <div className="flex flex-wrap gap-1.5 justify-center">
+          {lastQuestions.map((_, idx) => {
+            const ans = lastAnswers[idx]
+            const correct = lastQuestions[idx].correctAnswer
+            return (
+              <button key={idx} onClick={() => setReviewIdx(idx)}
+                className={`w-7 h-7 rounded-full text-xs font-bold transition-all ${
+                  idx === reviewIdx ? 'bg-red-600 text-white scale-110' :
+                  ans === correct ? 'bg-emerald-500 text-white' :
+                  ans !== null ? 'bg-red-500 text-white' :
+                  darkMode ? 'bg-white/10 text-gray-400' : 'bg-gray-200 text-gray-500'
+                }`}>
+                {idx + 1}
+              </button>
+            )
+          })}
         </div>
       </div>
     )
@@ -2873,7 +3020,7 @@ export default function EMSReviewerApp() {
           <footer className={`px-4 py-3 text-center text-xs border-t ${
             darkMode ? 'border-white/10 text-gray-500' : 'border-gray-200 text-gray-400'
           }`}>
-            PIO DURAN EMS NCII Reviewer • Study Hard, Save Lives • {new Date().getFullYear()}
+            PIO DURAN EMS NCII Reviewer • Study Hard, Save Lives • 2026
           </footer>
         </div>
       </div>

@@ -1,0 +1,29 @@
+{
+  "name": "PIO DURAN EMS NCII Reviewer",
+  "short_name": "EMS NCII",
+  "description": "Complete EMS NC II competency assessment reviewer with interactive quizzes, scenarios, simulations, and bilingual support.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1b2a",
+  "theme_color": "#e53935",
+  "orientation": "any",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["education", "medical"],
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
