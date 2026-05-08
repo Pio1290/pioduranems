@@ -180,14 +180,14 @@ function Sidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className={`hidden lg:flex flex-col w-64 flex-shrink-0 h-screen sticky top-0 border-r ${
+      <aside className={`hidden lg:flex flex-col w-64 flex-shrink-0 h-screen sticky top-0 border-r overflow-hidden ${
         darkMode ? 'bg-[#0d1b2a] border-white/10' : 'bg-white border-gray-200'
       }`}>
         {sidebarContent}
       </aside>
       {/* Mobile sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className={`w-72 p-0 ${darkMode ? 'bg-[#0d1b2a]' : 'bg-white'}`}>
+        <SheetContent side="left" className={`w-72 p-0 h-full overflow-hidden ${darkMode ? 'bg-[#0d1b2a]' : 'bg-white'}`}>
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation</SheetTitle>
             <SheetDescription>Main navigation menu</SheetDescription>
@@ -1494,7 +1494,7 @@ function SimulationsPage() {
           <Button variant="ghost" size="sm" onClick={() => { setSelectedSim(null); setStepIdx(0); setCompletedSteps(new Set()) }}>
             <ArrowLeft className="w-4 h-4 mr-1" /> Back
           </Button>
-          <Badge className="bg-blue-600">{sim.title}</Badge>
+          <Badge className={sim.category === 'assessment-day' ? 'bg-gradient-to-r from-red-600 to-blue-600' : 'bg-blue-600'}>{sim.category === 'assessment-day' ? 'TESDA Assessment Day' : sim.title}</Badge>
           <Badge variant="outline" className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             {stepIdx + 1}/{sim.steps.length} steps
           </Badge>
@@ -1529,6 +1529,40 @@ function SimulationsPage() {
           ))}
         </div>
 
+        {/* Roles Display */}
+        {sim.roles && sim.roles.length > 0 && (
+          <Card className={`${darkMode ? 'bg-[#1b2838]/60 border-white/10' : 'bg-gradient-to-r from-red-50 to-blue-50 border-red-200'}`}>
+            <CardContent className="p-4">
+              <p className={`text-sm font-semibold mb-3 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <Users className="w-4 h-4 text-red-500" /> Team Roles
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {sim.roles.map((role, ri) => {
+                  const roleColorMap: Record<number, string> = {
+                    0: 'bg-purple-600', 1: 'bg-red-600', 2: 'bg-amber-600',
+                    3: 'bg-blue-600', 4: 'bg-emerald-600', 5: 'bg-cyan-600'
+                  }
+                  return (
+                    <div key={ri} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${darkMode ? 'bg-white/5' : 'bg-white'} shadow-sm`}>
+                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${roleColorMap[ri] || 'bg-gray-500'}`}>
+                        {ri + 1}
+                      </span>
+                      <div>
+                        <p className={`text-xs font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {language === 'fil' && role.nameFil ? role.nameFil : role.name}
+                        </p>
+                        <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {language === 'fil' && role.descriptionFil ? role.descriptionFil : role.description}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Step Card */}
         <Card className={`overflow-hidden ${darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''} ${step.criticalStep ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-blue-500'}`}>
           <CardContent className="p-6">
@@ -1546,6 +1580,61 @@ function SimulationsPage() {
             <p className={`text-sm mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               {language === 'fil' && step.descriptionFil ? step.descriptionFil : step.description}
             </p>
+
+            {/* Dialog / Script */}
+            {step.dialog && step.dialog.length > 0 && (
+              <div className="mb-4">
+                <p className={`text-sm font-semibold mb-2 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <MessageSquare className="w-4 h-4 text-blue-500" /> Team Script
+                </p>
+                <div className="space-y-2">
+                  {step.dialog.map((d, di) => {
+                    const speakerColors: Record<string, { bg: string; border: string; text: string; badge: string }> = {
+                      'Assessor': { bg: darkMode ? 'bg-purple-900/30' : 'bg-purple-50', border: 'border-purple-500/30', text: darkMode ? 'text-purple-300' : 'text-purple-800', badge: 'bg-purple-600' },
+                      'Team Leader': { bg: darkMode ? 'bg-red-900/20' : 'bg-red-50', border: 'border-red-500/30', text: darkMode ? 'text-red-300' : 'text-red-800', badge: 'bg-red-600' },
+                      'Driver': { bg: darkMode ? 'bg-amber-900/20' : 'bg-amber-50', border: 'border-amber-500/30', text: darkMode ? 'text-amber-300' : 'text-amber-800', badge: 'bg-amber-600' },
+                      'Responder 1': { bg: darkMode ? 'bg-blue-900/20' : 'bg-blue-50', border: 'border-blue-500/30', text: darkMode ? 'text-blue-300' : 'text-blue-800', badge: 'bg-blue-600' },
+                      'Responder 2': { bg: darkMode ? 'bg-emerald-900/20' : 'bg-emerald-50', border: 'border-emerald-500/30', text: darkMode ? 'text-emerald-300' : 'text-emerald-800', badge: 'bg-emerald-600' },
+                      'Responder 3': { bg: darkMode ? 'bg-cyan-900/20' : 'bg-cyan-50', border: 'border-cyan-500/30', text: darkMode ? 'text-cyan-300' : 'text-cyan-800', badge: 'bg-cyan-600' },
+                      'Patient': { bg: darkMode ? 'bg-gray-800/40' : 'bg-gray-100', border: 'border-gray-400/30', text: darkMode ? 'text-gray-300' : 'text-gray-700', badge: 'bg-gray-600' },
+                      'Med Base': { bg: darkMode ? 'bg-indigo-900/20' : 'bg-indigo-50', border: 'border-indigo-500/30', text: darkMode ? 'text-indigo-300' : 'text-indigo-800', badge: 'bg-indigo-600' },
+                      'ER Nurse': { bg: darkMode ? 'bg-pink-900/20' : 'bg-pink-50', border: 'border-pink-500/30', text: darkMode ? 'text-pink-300' : 'text-pink-800', badge: 'bg-pink-600' },
+                      'Radio': { bg: darkMode ? 'bg-indigo-900/20' : 'bg-indigo-50', border: 'border-indigo-500/30', text: darkMode ? 'text-indigo-300' : 'text-indigo-800', badge: 'bg-indigo-600' },
+                      'All Responders': { bg: darkMode ? 'bg-sky-900/20' : 'bg-sky-50', border: 'border-sky-500/30', text: darkMode ? 'text-sky-300' : 'text-sky-800', badge: 'bg-sky-600' },
+                    }
+                    const colors = speakerColors[d.speaker] || { bg: darkMode ? 'bg-white/5' : 'bg-gray-50', border: 'border-gray-300', text: darkMode ? 'text-gray-300' : 'text-gray-700', badge: 'bg-gray-500' }
+                    const isRadio = d.isRadio
+                    return (
+                      <div key={di} className={`rounded-lg p-3 border ${isRadio ? `${darkMode ? 'bg-indigo-950/40 border-indigo-500/50 ring-1 ring-indigo-500/20' : 'bg-indigo-50 border-indigo-300 ring-1 ring-indigo-200'}` : `${colors.bg} ${colors.border}`}`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          {isRadio && <Radio className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />}
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded text-white ${colors.badge}`}>
+                            {d.speaker}
+                          </span>
+                          {d.role && d.role !== d.speaker && (
+                            <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>({d.role})</span>
+                          )}
+                          {isRadio && (
+                            <span className="text-xs font-medium text-indigo-500 ml-auto flex items-center gap-1">
+                              <Radio className="w-3 h-3" /> RADIO
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-sm ${colors.text} ${isRadio ? 'italic' : ''}`}>
+                          "{language === 'fil' && d.lineFil ? d.lineFil : d.line}"
+                        </p>
+                        {d.note && (
+                          <p className={`text-xs mt-1.5 flex items-start gap-1 ${darkMode ? 'text-amber-400/70' : 'text-amber-600'}`}>
+                            <Info className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                            {language === 'fil' && d.noteFil ? d.noteFil : d.note}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Correct Action */}
             <div className={`p-4 rounded-xl mb-3 ${darkMode ? 'bg-emerald-900/30 border border-emerald-500/30' : 'bg-emerald-50 border border-emerald-200'}`}>
@@ -1688,7 +1777,7 @@ function SimulationsPage() {
           <Button key={c} variant={catFilter === c ? 'default' : 'outline'} size="sm"
             className={catFilter === c ? 'bg-blue-600 hover:bg-blue-700' : ''}
             onClick={() => setCatFilter(c)}>
-            {c === 'all' ? t('all', language) : c.charAt(0).toUpperCase() + c.slice(1)}
+            {c === 'all' ? t('all', language) : c === 'assessment-day' ? 'Assessment Day' : c.charAt(0).toUpperCase() + c.slice(1)}
           </Button>
         ))}
       </div>
@@ -1696,21 +1785,44 @@ function SimulationsPage() {
       {/* Simulation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredSims.map(s => (
-          <Card key={s.id} className={`cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg group ${darkMode ? 'bg-[#1b2838]/80 border-white/10 hover:border-blue-500/50' : 'border-gray-200 hover:border-blue-300'}`}
+          <Card key={s.id} className={`cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg group ${
+            s.category === 'assessment-day'
+              ? darkMode ? 'bg-gradient-to-br from-red-900/30 to-blue-900/30 border-red-500/30 hover:border-red-400/50' : 'bg-gradient-to-br from-red-50 to-blue-50 border-red-200 hover:border-red-300'
+              : darkMode ? 'bg-[#1b2838]/80 border-white/10 hover:border-blue-500/50' : 'border-gray-200 hover:border-blue-300'
+          }`}
             onClick={() => { setSelectedSim(s.id); setStepIdx(0); setCompletedSteps(new Set()) }}>
             <CardContent className="p-5">
               <div className="flex items-start gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <Layers className="w-6 h-6 text-white" />
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform ${
+                  s.category === 'assessment-day' ? 'bg-gradient-to-br from-red-500 to-blue-600' : 'bg-gradient-to-br from-blue-500 to-cyan-600'
+                }`}>
+                  {s.category === 'assessment-day' ? <Users className="w-6 h-6 text-white" /> : <Layers className="w-6 h-6 text-white" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     {language === 'fil' && s.titleFil ? s.titleFil : s.title}
                   </h3>
+                  {s.roles && s.roles.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {s.roles.slice(0, 4).map((r, ri) => (
+                        <span key={ri} className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${darkMode ? 'bg-white/10 text-gray-300' : 'bg-white text-gray-600'}`}>
+                          {r.name}
+                        </span>
+                      ))}
+                      {s.roles.length > 4 && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${darkMode ? 'bg-white/10 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
+                          +{s.roles.length - 4} more
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <div className="flex gap-2 mt-2">
                     <Badge variant="secondary" className="text-xs capitalize">{s.category}</Badge>
                     <Badge variant="outline" className="text-xs">{s.difficulty}</Badge>
                     <Badge variant="outline" className="text-xs">{s.steps.length} steps</Badge>
+                    {s.steps.some(st => st.dialog && st.dialog.length > 0) && (
+                      <Badge className="text-xs bg-indigo-600"><Radio className="w-3 h-3 mr-1" /> Radio</Badge>
+                    )}
                   </div>
                   {/* Mini step preview */}
                   <div className="flex gap-1 mt-2">

@@ -9,4 +9,4 @@ export type { Scenario, ScenarioNode } from './scenarios';
 export { competencies } from './competencies';
 export type { CompetencyModule } from './competencies';
 export { quotes, assessmentScripts, simulations, visualizations, translations } from './content';
-export type { EMSQuote, AssessmentScript, Simulation, VisualizationItem } from './content';
+export type { EMSQuote, AssessmentScript, Simulation, SimulationDialog, VisualizationItem } from './content';

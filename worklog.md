@@ -159,3 +159,29 @@ Stage Summary:
 - App installable on Android/iOS via PWA manifest
 - Full offline support via service worker caching
 - Key competency modules now have 2 lessons each with expanded key points
+
+---
+Task ID: 6
+Agent: Main
+Task: Fix sidebar scrolling and add TESDA Assessment Day simulation with 5 responders + radio communication
+
+Work Log:
+- Fixed sidebar scrollability: Added overflow-hidden to desktop aside and h-full overflow-hidden to mobile SheetContent for proper ScrollArea behavior
+- Extended Simulation interface with dialog (SimulationDialog) and roles fields
+- Added comprehensive TESDA Assessment Day simulation (sim-09) with 13 steps and full team script
+- Created 6 roles: Assessor, Team Leader, Driver, Responder 1, Responder 2, Responder 3
+- Included radio communications with Med Base using SBAR format
+- Added bilingual dialog lines (English + Filipino) throughout
+- Added speaker-specific color coding (purple=Assessor, red=Team Leader, amber=Driver, blue=R1, emerald=R2, cyan=R3)
+- Added special radio communication styling with indigo ring and RADIO badge
+- Added note/direction indicators for assessor observations and stage directions
+- Enhanced SimulationsPage with: Team Roles card, multi-speaker dialog rendering, radio badge on cards, assessment-day category styling
+- Updated data/index.ts to export SimulationDialog type
+- Build verified successful
+
+Stage Summary:
+- Sidebar now scrolls properly on both desktop and mobile
+- New TESDA Assessment Day simulation with 13 comprehensive steps covering: briefing, role assignment, dispatch, scene size-up, primary assessment, vital signs/SAMPLE/OPQRST, ECG/treatment, radio SBAR report, transport preparation, ongoing reassessment, hospital handoff, post-call procedures, assessor evaluation
+- Full radio communication protocol with proper call signs and "Over" usage
+- Step-by-step script for all 5 responders (Driver, Team Leader, R1-R3) plus Assessor, Patient, Med Base, ER Nurse
+- Simulation dialog UI with speaker badges, color coding, radio indicators, and stage direction notes
