@@ -850,39 +850,6 @@ function PracticeExamPage() {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [])
 
-  useEffect(() => {
-    if (currentAssessment && currentAssessment.timeLimit > 0 && !showResults && examMode) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            if (timerRef.current) clearInterval(timerRef.current)
-            handleFinish()
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-      return () => { if (timerRef.current) clearInterval(timerRef.current) }
-    }
-  }, [currentAssessment && !showResults && examMode, handleFinish])
-
-  const startExam = (mode: 'tesda' | 'pressure' | 'full') => {
-    setExamMode(mode)
-    const configs = { tesda: { count: 60, time: 60 }, pressure: { count: 30, time: 15 }, full: { count: 100, time: 0 } }
-    const cfg = configs[mode]
-    const selected = shuffleArray(questions).slice(0, cfg.count)
-    const assessmentQuestions = selected.map(q => ({
-      id: q.id, question: q.question, options: q.options, correctAnswer: q.correctAnswer, area: q.area, explanation: q.explanation
-    }))
-    useAppStore.getState().startAssessment({
-      questions: assessmentQuestions, currentQuestionIndex: 0,
-      answers: new Array(assessmentQuestions.length).fill(null),
-      startTime: Date.now(), timeLimit: cfg.time * 60, mode: 'timed'
-    })
-    setTimeLeft(cfg.time * 60)
-    setShowResults(false)
-  }
-
   const handleFinish = useCallback(() => {
     if (!currentAssessment) return
     if (timerRef.current) clearInterval(timerRef.current)
@@ -904,6 +871,39 @@ function PracticeExamPage() {
     })
     setShowResults(true)
   }, [currentAssessment, examMode, finishAssessment, addCompletedQuiz, addStudyHistoryEntry, addWeakArea])
+
+  const startExam = (mode: 'tesda' | 'pressure' | 'full') => {
+    setExamMode(mode)
+    const configs = { tesda: { count: 60, time: 60 }, pressure: { count: 30, time: 15 }, full: { count: 100, time: 0 } }
+    const cfg = configs[mode]
+    const selected = shuffleArray(questions).slice(0, cfg.count)
+    const assessmentQuestions = selected.map(q => ({
+      id: q.id, question: q.question, options: q.options, correctAnswer: q.correctAnswer, area: q.area, explanation: q.explanation
+    }))
+    useAppStore.getState().startAssessment({
+      questions: assessmentQuestions, currentQuestionIndex: 0,
+      answers: new Array(assessmentQuestions.length).fill(null),
+      startTime: Date.now(), timeLimit: cfg.time * 60, mode: 'timed'
+    })
+    setTimeLeft(cfg.time * 60)
+    setShowResults(false)
+  }
+
+  useEffect(() => {
+    if (currentAssessment && currentAssessment.timeLimit > 0 && !showResults && examMode) {
+      timerRef.current = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            if (timerRef.current) clearInterval(timerRef.current)
+            handleFinish()
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      return () => { if (timerRef.current) clearInterval(timerRef.current) }
+    }
+  }, [currentAssessment && !showResults && examMode, handleFinish])
 
   // Results
   if (showResults && currentAssessment === null) {
