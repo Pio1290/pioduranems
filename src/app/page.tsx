@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useMemo, Suspense } from 'react'
 import { useAppStore, type PageName } from '@/lib/store'
 import { questions, acronyms, glossaryTerms, scenarios, competencies, quotes, assessmentScripts, simulations, visualizations, translations } from '@/lib/data'
 import { Button } from '@/components/ui/button'
@@ -31,7 +31,7 @@ import {
   Wifi, WifiOff, Flag, Target, TrendingUp, BarChart3, List, Grid, Maximize,
   Minimize, RefreshCw, ChevronDown, ChevronUp, Plus, Minus, Info, HelpCircle,
   Sparkles, ArrowUpRight, Timer, ToggleLeft, ToggleRight, Layers, ShieldCheck,
-  Move, AlignCenter, PhoneCall, Car, UsersRound, Bandage, HeartPulse
+  Move, AlignCenter, PhoneCall, Car, UsersRound, Bandage, HeartPulse, Image as ImageIcon, Compass, MapPin, Crosshair, CircleDot, Hexagon, Navigation
 } from 'lucide-react'
 
 // ─── Helper Functions ──────────────────────────────────────────────
@@ -143,12 +143,10 @@ function Sidebar() {
     <div className="flex flex-col h-full">
       <div className={`p-4 border-b ${darkMode ? 'border-white/10' : 'border-gray-200'}`}>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-600 to-blue-800 flex items-center justify-center">
-            <Shield className="w-4 h-4 text-white" />
-          </div>
+          <img src="/logo.png" alt="PIO DURAN EMS NCII" className="w-9 h-9 rounded-lg object-contain" />
           <div>
-            <h1 className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>EMS NC II</h1>
-            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Reviewer</p>
+            <h1 className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>PIO DURAN</h1>
+            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>EMS NC II Reviewer</p>
           </div>
         </div>
       </div>
@@ -171,8 +169,9 @@ function Sidebar() {
       </ScrollArea>
       <div className={`p-3 border-t ${darkMode ? 'border-white/10' : 'border-gray-200'}`}>
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <WifiOff className="w-3 h-3" />
+          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span>Offline Ready</span>
+          <span className="ml-auto">v2.0</span>
         </div>
       </div>
     </div>
@@ -211,10 +210,10 @@ function HomePage() {
     : 0
 
   const quickAccess = [
-    { page: 'assessment' as PageName, icon: Target, label: t('startAssessment', language), color: 'from-red-500 to-red-700' },
-    { page: 'practice-exam' as PageName, icon: ClipboardList, label: t('practiceExam', language), color: 'from-blue-500 to-blue-700' },
-    { page: 'acronyms' as PageName, icon: Zap, label: t('flashcards', language), color: 'from-emerald-500 to-emerald-700' },
-    { page: 'scenarios' as PageName, icon: Siren, label: t('scenarios', language), color: 'from-amber-500 to-amber-700' },
+    { page: 'assessment' as PageName, icon: Target, label: t('startAssessment', language), color: 'from-red-500 to-red-700', desc: 'Test your knowledge' },
+    { page: 'practice-exam' as PageName, icon: ClipboardList, label: t('practiceExam', language), color: 'from-blue-500 to-blue-700', desc: 'TESDA-style exam' },
+    { page: 'acronyms' as PageName, icon: Zap, label: t('flashcards', language), color: 'from-emerald-500 to-emerald-700', desc: 'Quick reference' },
+    { page: 'scenarios' as PageName, icon: Siren, label: t('scenarios', language), color: 'from-amber-500 to-amber-700', desc: 'Emergency sims' },
   ]
 
   return (
@@ -223,13 +222,15 @@ function HomePage() {
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0d47a1] via-[#1565c0] to-[#e53935] p-6 md:p-8">
         <ECGLine />
         <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-2">
-            <Shield className="w-6 h-6 text-white/80" />
-            <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs">EMS NC II</Badge>
+          <div className="flex items-center gap-2 mb-3">
+            <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-lg object-contain bg-white/10 p-1" />
+            <div>
+              <Badge variant="secondary" className="bg-white/20 text-white border-0 text-xs">PIO DURAN EMS NCII</Badge>
+              <h1 className="text-2xl md:text-3xl font-bold text-white mt-1">{t('welcome', language)}</h1>
+            </div>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">{t('welcome', language)}</h1>
-          <p className="text-white/80 text-sm md:text-base max-w-lg">{quote.text}</p>
-          <p className="text-white/60 text-xs mt-1">— {quote.author}</p>
+          <p className="text-white/80 text-sm md:text-base max-w-lg italic">"{quote.text}"</p>
+          <p className="text-white/50 text-xs mt-1">— {quote.author}</p>
         </div>
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
@@ -237,18 +238,22 @@ function HomePage() {
 
       {/* Quick Access Grid */}
       <div>
-        <h2 className={`text-lg font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{t('quickAccess', language)}</h2>
+        <h2 className={`text-lg font-semibold mb-3 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          <Zap className="w-5 h-5 text-red-500" /> {t('quickAccess', language)}
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickAccess.map(item => (
             <button
               key={item.page}
               onClick={() => setCurrentPage(item.page)}
-              className="group relative overflow-hidden rounded-xl p-4 text-left transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              className="group relative overflow-hidden rounded-xl p-5 text-left transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] hover:shadow-xl"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-90`} />
+              <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-90 group-hover:opacity-100 transition-opacity`} />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
               <div className="relative z-10">
-                <item.icon className="w-8 h-8 text-white mb-2" />
+                <item.icon className="w-8 h-8 text-white mb-2 group-hover:scale-110 transition-transform" />
                 <p className="text-white font-semibold text-sm">{item.label}</p>
+                <p className="text-white/60 text-xs mt-0.5">{item.desc}</p>
               </div>
             </button>
           ))}
@@ -257,7 +262,7 @@ function HomePage() {
 
       {/* Study Progress */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className={`backdrop-blur-sm ${darkMode ? 'bg-[#1b2838]/80 border-white/10 text-white' : 'bg-white shadow-sm'}`}>
+        <Card className={`backdrop-blur-sm transition-all duration-300 hover:shadow-md ${darkMode ? 'bg-[#1b2838]/80 border-white/10 text-white' : 'bg-white shadow-sm'}`}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{t('completed', language)} Modules</span>
@@ -267,7 +272,7 @@ function HomePage() {
             <Progress value={(completedModules.length / competencies.length) * 100} className="mt-2 h-1.5" />
           </CardContent>
         </Card>
-        <Card className={`backdrop-blur-sm ${darkMode ? 'bg-[#1b2838]/80 border-white/10 text-white' : 'bg-white shadow-sm'}`}>
+        <Card className={`backdrop-blur-sm transition-all duration-300 hover:shadow-md ${darkMode ? 'bg-[#1b2838]/80 border-white/10 text-white' : 'bg-white shadow-sm'}`}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Avg {t('score', language)}</span>
@@ -277,7 +282,7 @@ function HomePage() {
             <Progress value={avgScore} className="mt-2 h-1.5" />
           </CardContent>
         </Card>
-        <Card className={`backdrop-blur-sm ${darkMode ? 'bg-[#1b2838]/80 border-white/10 text-white' : 'bg-white shadow-sm'}`}>
+        <Card className={`backdrop-blur-sm transition-all duration-300 hover:shadow-md ${darkMode ? 'bg-[#1b2838]/80 border-white/10 text-white' : 'bg-white shadow-sm'}`}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{t('question', language)} Bank</span>
@@ -291,16 +296,19 @@ function HomePage() {
 
       {/* Weak Areas */}
       {weakAreas.length > 0 && (
-        <Card className={`backdrop-blur-sm ${darkMode ? 'bg-[#1b2838]/80 border-white/10' : 'bg-white shadow-sm'}`}>
+        <Card className={`backdrop-blur-sm transition-all duration-300 hover:shadow-md ${darkMode ? 'bg-[#1b2838]/80 border-white/10' : 'bg-white shadow-sm'}`}>
           <CardHeader className="pb-2">
             <CardTitle className={`text-sm font-semibold flex items-center gap-2 ${darkMode ? 'text-white' : ''}`}>
               <AlertTriangle className="w-4 h-4 text-amber-500" /> Weak Areas
+              <Badge variant="secondary" className="text-xs ml-auto">{weakAreas.length}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex flex-wrap gap-2">
               {weakAreas.map(area => (
-                <Badge key={area} variant="outline" className="border-amber-500 text-amber-500">{area}</Badge>
+                <Badge key={area} variant="outline" className="border-amber-500 text-amber-600 hover:bg-amber-50 transition-colors cursor-default">
+                  <AlertTriangle className="w-3 h-3 mr-1" />{area}
+                </Badge>
               ))}
             </div>
           </CardContent>
@@ -309,15 +317,20 @@ function HomePage() {
 
       {/* Recent Activity */}
       {studyHistory.length > 0 && (
-        <Card className={`backdrop-blur-sm ${darkMode ? 'bg-[#1b2838]/80 border-white/10' : 'bg-white shadow-sm'}`}>
+        <Card className={`backdrop-blur-sm transition-all duration-300 hover:shadow-md ${darkMode ? 'bg-[#1b2838]/80 border-white/10' : 'bg-white shadow-sm'}`}>
           <CardHeader className="pb-2">
-            <CardTitle className={`text-sm font-semibold ${darkMode ? 'text-white' : ''}`}>{t('recentActivity', language)}</CardTitle>
+            <CardTitle className={`text-sm font-semibold flex items-center gap-2 ${darkMode ? 'text-white' : ''}`}>
+              <Clock className="w-4 h-4 text-blue-500" /> {t('recentActivity', language)}
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {studyHistory.slice(-5).reverse().map((entry, i) => (
-                <div key={i} className={`flex items-center justify-between text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  <span>{entry.topic}</span>
+                <div key={i} className={`flex items-center justify-between text-sm p-2 rounded-lg transition-colors ${darkMode ? 'text-gray-300 hover:bg-white/5' : 'text-gray-600 hover:bg-gray-50'}`}>
+                  <span className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    {entry.topic}
+                  </span>
                   <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>{entry.date}</span>
                 </div>
               ))}
@@ -1037,12 +1050,29 @@ function PracticeExamPage() {
 function ScenariosPage() {
   const { darkMode, language, currentScenario, startScenario, setCurrentScenarioNode, addScenarioDecision, setScenarioScore, clearCurrentScenario, addStudyHistoryEntry } = useAppStore()
   const [selectedScenario, setSelectedScenario] = useState<string | null>(null)
+  const [showFeedback, setShowFeedback] = useState<string | null>(null)
+  const [catFilter, setCatFilter] = useState('all')
+  const [urgencyPulse, setUrgencyPulse] = useState(false)
+
+  const scenarioCategories = useMemo(() => ['all', ...Array.from(new Set(scenarios.map(s => s.category)))], [])
+  const filteredScenarios = useMemo(() => scenarios.filter(s => catFilter === 'all' || s.category === catFilter), [catFilter])
+
+  const difficultyColors: Record<string, string> = {
+    easy: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    medium: 'bg-amber-100 text-amber-700 border-amber-200',
+    hard: 'bg-red-100 text-red-700 border-red-200',
+  }
+  const categoryIcons: Record<string, React.ElementType> = {
+    cardiac: HeartPulse, trauma: Car, medical: Stethoscope, respiratory: Wind, pediatric: Baby
+  }
 
   const startScen = (scenId: string) => {
     const scen = scenarios.find(s => s.id === scenId)
     if (!scen) return
     startScenario({ scenarioId: scenId, currentNode: scen.initialNode, decisions: [], score: 0 })
     setSelectedScenario(scenId)
+    setUrgencyPulse(true)
+    setTimeout(() => setUrgencyPulse(false), 2000)
   }
 
   if (currentScenario) {
@@ -1053,16 +1083,63 @@ function ScenariosPage() {
 
     if (node.isEndNode) {
       const result = node.endResult || 'partial'
-      const resultColors = { success: 'bg-emerald-50 border-emerald-200 text-emerald-700', partial: 'bg-amber-50 border-amber-200 text-amber-700', failure: 'bg-red-50 border-red-200 text-red-700' }
+      const resultConfig = {
+        success: { emoji: '🎉', title: 'Mission Accomplished!', colors: 'bg-emerald-50 border-emerald-200 text-emerald-700', gradient: 'from-emerald-500 to-emerald-700', icon: ShieldCheck },
+        partial: { emoji: '⚠️', title: 'Partial Success', colors: 'bg-amber-50 border-amber-200 text-amber-700', gradient: 'from-amber-500 to-amber-700', icon: AlertTriangle },
+        failure: { emoji: '❌', title: 'Mission Failed', colors: 'bg-red-50 border-red-200 text-red-700', gradient: 'from-red-500 to-red-700', icon: X },
+      }
+      const cfg = resultConfig[result]
+      const ResultIcon = cfg.icon
+      const maxScore = 50
+      const scorePercent = Math.min(100, Math.round((currentScenario.score / maxScore) * 100))
+
       return (
-        <div className="space-y-4 max-w-2xl mx-auto">
-          <div className={`text-center p-6 rounded-2xl border ${resultColors[result]}`}>
-            <div className="text-4xl font-bold mb-2">{result === 'success' ? '🎉' : result === 'partial' ? '⚠️' : '❌'}</div>
-            <h2 className="text-2xl font-bold capitalize">{result}</h2>
-            <p className="mt-2 text-sm">{language === 'fil' && node.endFeedbackFil ? node.endFeedbackFil : node.endFeedback}</p>
-            <p className="mt-2 font-semibold">Score: {currentScenario.score} points</p>
+        <div className="space-y-6 max-w-2xl mx-auto">
+          {/* Result Header */}
+          <div className={`text-center p-8 rounded-2xl border-2 ${cfg.colors} relative overflow-hidden`}>
+            <div className={`absolute inset-0 bg-gradient-to-br ${cfg.gradient} opacity-5`} />
+            <div className="relative z-10">
+              <div className="text-5xl mb-3">{cfg.emoji}</div>
+              <ResultIcon className={`w-10 h-10 mx-auto mb-2 ${result === 'success' ? 'text-emerald-600' : result === 'partial' ? 'text-amber-600' : 'text-red-600'}`} />
+              <h2 className="text-2xl font-bold">{cfg.title}</h2>
+              <p className="mt-3 text-sm max-w-md mx-auto">{language === 'fil' && node.endFeedbackFil ? node.endFeedbackFil : node.endFeedback}</p>
+            </div>
           </div>
-          <Button onClick={() => { clearCurrentScenario(); setSelectedScenario(null) }} className="bg-red-600 hover:bg-red-700">
+          {/* Score Card */}
+          <Card className={darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Performance Score</span>
+                <span className="text-2xl font-bold text-red-600">{currentScenario.score}</span>
+              </div>
+              <Progress value={scorePercent} className="h-3 mb-3" />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>0 pts</span>
+                <span>{maxScore} pts max</span>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Decisions Log */}
+          {currentScenario.decisions.length > 0 && (
+            <Card className={darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''}>
+              <CardHeader className="pb-2">
+                <CardTitle className={`text-sm font-semibold flex items-center gap-2 ${darkMode ? 'text-white' : ''}`}>
+                  <ClipboardList className="w-4 h-4 text-blue-500" /> Decision Log
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {currentScenario.decisions.map((dec, i) => (
+                    <div key={i} className={`flex items-start gap-2 text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                      <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 font-bold">{i + 1}</span>
+                      <span>{dec}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          <Button onClick={() => { clearCurrentScenario(); setSelectedScenario(null) }} className="bg-red-600 hover:bg-red-700 w-full">
             <RotateCcw className="w-4 h-4 mr-2" /> Try Another Scenario
           </Button>
         </div>
@@ -1071,46 +1148,101 @@ function ScenariosPage() {
 
     return (
       <div className="space-y-4 max-w-2xl mx-auto">
-        <div className="flex items-center gap-2">
+        {/* Header with scenario info */}
+        <div className="flex items-center gap-2 flex-wrap">
           <Button variant="ghost" size="sm" onClick={() => { clearCurrentScenario(); setSelectedScenario(null) }}>
             <ArrowLeft className="w-4 h-4 mr-1" /> Exit
           </Button>
-          <Badge>{scen.title}</Badge>
-          <Badge variant="outline" className="ml-auto">Score: {currentScenario.score}</Badge>
+          <Badge className="bg-red-600">{scen.title}</Badge>
+          <Badge variant="outline" className={`ml-auto ${darkMode ? 'text-amber-400 border-amber-500/50' : 'text-amber-600 border-amber-300'}`}>
+            <Star className="w-3 h-3 mr-1" /> {currentScenario.score} pts
+          </Badge>
         </div>
-        <Card className={darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''}>
-          <CardContent className="p-6">
-            {node.vitalSigns && (
-              <div className="grid grid-cols-4 gap-2 mb-4">
+
+        {/* Urgency Indicator */}
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${
+          urgencyPulse
+            ? 'bg-red-100 text-red-700 animate-pulse border border-red-300'
+            : darkMode ? 'bg-red-900/20 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-600 border border-red-200'
+        }`}>
+          <Siren className="w-4 h-4" />
+          <span>EMERGENCY RESPONSE IN PROGRESS</span>
+          <Badge variant="outline" className={`text-xs ml-auto ${difficultyColors[scen.difficulty]}`}>{scen.difficulty}</Badge>
+        </div>
+
+        {/* Vital Signs Monitor */}
+        {node.vitalSigns && (
+          <Card className={`overflow-hidden ${darkMode ? 'bg-[#0d1b2a] border-white/10' : 'bg-gray-900 text-white'}`}>
+            <div className="px-4 py-2 bg-gradient-to-r from-red-700 to-red-900 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-white animate-pulse" />
+              <span className="text-xs font-bold text-white tracking-wider">VITAL SIGNS MONITOR</span>
+            </div>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-4 gap-3">
                 {[
-                  { label: 'HR', value: node.vitalSigns.hr, icon: Heart },
-                  { label: 'BP', value: node.vitalSigns.bp, icon: Gauge },
-                  { label: 'RR', value: node.vitalSigns.rr, icon: Wind },
-                  { label: 'SpO2', value: node.vitalSigns.spo2, icon: Droplets },
+                  { label: 'HR', value: node.vitalSigns.hr, icon: Heart, unit: 'bpm', warn: node.vitalSigns.hr > 100 || node.vitalSigns.hr < 60 },
+                  { label: 'BP', value: node.vitalSigns.bp, icon: Gauge, unit: 'mmHg', warn: false },
+                  { label: 'RR', value: node.vitalSigns.rr, icon: Wind, unit: '/min', warn: node.vitalSigns.rr > 20 || node.vitalSigns.rr < 12 },
+                  { label: 'SpO2', value: node.vitalSigns.spo2, icon: Droplets, unit: '%', warn: node.vitalSigns.spo2 < 94 },
                 ].map(vs => (
-                  <div key={vs.label} className={`text-center p-2 rounded-lg ${darkMode ? 'bg-black/30' : 'bg-gray-50'}`}>
-                    <vs.icon className="w-3 h-3 mx-auto mb-1 text-red-500" />
-                    <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{vs.label}</p>
-                    <p className={`text-sm font-bold ${darkMode ? 'text-white' : ''}`}>{vs.value}</p>
+                  <div key={vs.label} className="text-center">
+                    <vs.icon className={`w-4 h-4 mx-auto mb-1 ${vs.warn ? 'text-red-400 animate-pulse' : 'text-emerald-400'}`} />
+                    <p className="text-xs text-gray-400">{vs.label}</p>
+                    <p className={`text-lg font-bold font-mono ${vs.warn ? 'text-red-400' : 'text-emerald-400'}`}>{vs.value}</p>
+                    <p className="text-xs text-gray-500">{vs.unit}</p>
                   </div>
                 ))}
               </div>
-            )}
-            <p className={`text-base ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Scenario Narration */}
+        <Card className={`${darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''} relative overflow-hidden`}>
+          <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-red-500 to-amber-500`} />
+          <CardContent className="p-6 pl-5">
+            <p className={`text-base leading-relaxed ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
               {language === 'fil' && node.narrationFil ? node.narrationFil : node.narration}
             </p>
           </CardContent>
         </Card>
+
+        {/* Feedback Toast */}
+        {showFeedback && (
+          <Alert className={`border-2 ${darkMode ? 'bg-blue-900/30 border-blue-500/50' : 'bg-blue-50 border-blue-300'} animate-in slide-in-from-bottom-2`}>
+            <Info className="w-4 h-4 text-blue-500" />
+            <AlertDescription className={`text-sm ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>
+              {showFeedback}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Decision Options */}
         <div className="space-y-2">
+          <p className={`text-xs font-semibold uppercase tracking-wider ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            What do you do?
+          </p>
           {node.options.map((opt, idx) => (
-            <Button key={idx} variant="outline" className={`w-full text-left justify-start h-auto py-3 px-4 ${darkMode ? 'border-white/10 text-gray-300 hover:bg-red-900/20 hover:border-red-500/50' : 'hover:bg-red-50 hover:border-red-300'}`}
+            <Button key={idx} variant="outline"
+              className={`w-full text-left justify-start h-auto py-4 px-5 transition-all duration-200 ${
+                darkMode
+                  ? 'border-white/10 text-gray-300 hover:bg-red-900/20 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-900/10'
+                  : 'border-gray-200 hover:bg-red-50 hover:border-red-300 hover:shadow-md'
+              }`}
               onClick={() => {
                 addScenarioDecision(opt.text)
                 setScenarioScore(currentScenario.score + opt.scoreChange)
                 setCurrentScenarioNode(opt.nextNodeId)
+                setShowFeedback(opt.feedback)
+                setUrgencyPulse(opt.scoreChange < 0)
+                setTimeout(() => { setShowFeedback(null); setUrgencyPulse(false) }, 3000)
               }}>
-              <span className="mr-2 font-bold text-red-500">{String.fromCharCode(65 + idx)}.</span>
-              {language === 'fil' && opt.textFil ? opt.textFil : opt.text}
+              <span className="w-8 h-8 rounded-lg bg-red-600 text-white text-sm flex items-center justify-center flex-shrink-0 mr-3 font-bold">
+                {String.fromCharCode(65 + idx)}
+              </span>
+              <span className="text-sm">
+                {language === 'fil' && opt.textFil ? opt.textFil : opt.text}
+              </span>
             </Button>
           ))}
         </div>
@@ -1120,32 +1252,60 @@ function ScenariosPage() {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{t('scenarios', language)}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {scenarios.map(scen => (
-          <Card key={scen.id} className={`cursor-pointer transition-all hover:scale-[1.01] ${darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''}`}
-            onClick={() => startScen(scen.id)}>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center flex-shrink-0">
-                  <Siren className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {language === 'fil' && scen.titleFil ? scen.titleFil : scen.title}
-                  </h3>
-                  <p className={`text-xs mt-1 line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {language === 'fil' && scen.descriptionFil ? scen.descriptionFil : scen.description}
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="secondary" className="text-xs">{scen.category}</Badge>
-                    <Badge variant="outline" className="text-xs">{scen.difficulty}</Badge>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Header */}
+      <div className={`rounded-2xl p-6 ${darkMode ? 'bg-gradient-to-br from-red-900/30 to-amber-900/30 border border-white/10' : 'bg-gradient-to-br from-red-50 to-amber-50 border border-red-100'}`}>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-amber-600 flex items-center justify-center">
+            <Siren className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{t('scenarios', language)}</h2>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Immersive pre-hospital emergency simulations</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Category Filter */}
+      <div className="flex flex-wrap gap-2">
+        {scenarioCategories.map(c => (
+          <Button key={c} variant={catFilter === c ? 'default' : 'outline'} size="sm"
+            className={catFilter === c ? 'bg-red-600 hover:bg-red-700' : ''}
+            onClick={() => setCatFilter(c)}>
+            {c === 'all' ? t('all', language) : c.charAt(0).toUpperCase() + c.slice(1)}
+          </Button>
         ))}
+      </div>
+
+      {/* Scenario Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {filteredScenarios.map(scen => {
+          const CatIcon = categoryIcons[scen.category] || Siren
+          return (
+            <Card key={scen.id} className={`cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg group ${darkMode ? 'bg-[#1b2838]/80 border-white/10 hover:border-red-500/50' : 'border-gray-200 hover:border-red-300'}`}
+              onClick={() => startScen(scen.id)}>
+              <CardContent className="p-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-amber-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <CatIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {language === 'fil' && scen.titleFil ? scen.titleFil : scen.title}
+                    </h3>
+                    <p className={`text-xs mt-1 line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {language === 'fil' && scen.descriptionFil ? scen.descriptionFil : scen.description}
+                    </p>
+                    <div className="flex gap-2 mt-2">
+                      <Badge variant="secondary" className="text-xs capitalize">{scen.category}</Badge>
+                      <Badge className={`text-xs ${difficultyColors[scen.difficulty]}`}>{scen.difficulty}</Badge>
+                    </div>
+                  </div>
+                  <Play className={`w-5 h-5 flex-shrink-0 ${darkMode ? 'text-gray-600' : 'text-gray-300'} group-hover:text-red-500 transition-colors`} />
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
     </div>
   )
@@ -1156,111 +1316,264 @@ function SimulationsPage() {
   const { darkMode, language } = useAppStore()
   const [selectedSim, setSelectedSim] = useState<string | null>(null)
   const [stepIdx, setStepIdx] = useState(0)
+  const [showMistakes, setShowMistakes] = useState(false)
+  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set)
+  const [catFilter, setCatFilter] = useState('all')
+
+  const simCategories = useMemo(() => ['all', ...Array.from(new Set(simulations.map(s => s.category)))], [])
+  const filteredSims = useMemo(() => simulations.filter(s => catFilter === 'all' || s.category === catFilter), [catFilter])
 
   const sim = selectedSim ? simulations.find(s => s.id === selectedSim) : null
 
+  const toggleStepComplete = (stepId: string) => {
+    setCompletedSteps(prev => {
+      const next = new Set(prev)
+      if (next.has(stepId)) next.delete(stepId)
+      else next.add(stepId)
+      return next
+    })
+  }
+
   if (sim) {
     const step = sim.steps[stepIdx]
+    const isStepComplete = completedSteps.has(step.id)
+    const allComplete = completedSteps.size === sim.steps.length
+    const completionPct = Math.round((completedSteps.size / sim.steps.length) * 100)
+
     return (
       <div className="space-y-4 max-w-2xl mx-auto">
+        {/* Header */}
         <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="ghost" size="sm" onClick={() => { setSelectedSim(null); setStepIdx(0) }}>
+          <Button variant="ghost" size="sm" onClick={() => { setSelectedSim(null); setStepIdx(0); setCompletedSteps(new Set()) }}>
             <ArrowLeft className="w-4 h-4 mr-1" /> Back
           </Button>
-          <Badge>{sim.title}</Badge>
-          <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{stepIdx + 1}/{sim.steps.length}</span>
+          <Badge className="bg-blue-600">{sim.title}</Badge>
+          <Badge variant="outline" className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            {stepIdx + 1}/{sim.steps.length} steps
+          </Badge>
+          {allComplete && (
+            <Badge className="bg-emerald-600 animate-pulse">
+              <Check className="w-3 h-3 mr-1" /> Complete!
+            </Badge>
+          )}
         </div>
-        <Progress value={((stepIdx + 1) / sim.steps.length) * 100} className="h-2" />
-        <Card className={darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''}>
+
+        {/* Overall Progress */}
+        <div className="flex items-center gap-3">
+          <Progress value={completionPct} className="h-2 flex-1" />
+          <span className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{completionPct}%</span>
+        </div>
+
+        {/* Step Timeline */}
+        <div className="flex gap-1 overflow-x-auto pb-1">
+          {sim.steps.map((s, i) => (
+            <button key={s.id} onClick={() => setStepIdx(i)}
+              className={`flex-shrink-0 w-8 h-8 rounded-full text-xs font-bold transition-all duration-200 ${
+                i === stepIdx
+                  ? 'bg-red-600 text-white scale-110 shadow-lg'
+                  : completedSteps.has(s.id)
+                    ? 'bg-emerald-500 text-white'
+                    : s.criticalStep
+                      ? darkMode ? 'bg-red-900/30 text-red-400 border border-red-500/50' : 'bg-red-50 text-red-600 border border-red-300'
+                      : darkMode ? 'bg-white/10 text-gray-400' : 'bg-gray-100 text-gray-500'
+              }`}>
+              {completedSteps.has(s.id) ? <Check className="w-4 h-4 mx-auto" /> : i + 1}
+            </button>
+          ))}
+        </div>
+
+        {/* Step Card */}
+        <Card className={`overflow-hidden ${darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''} ${step.criticalStep ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-blue-500'}`}>
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-3">
-              <h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                {language === 'fil' && step.instructionFil ? step.instructionFil : step.instruction}
-              </h3>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold ${step.criticalStep ? 'bg-red-600' : 'bg-blue-600'}`}>
+                {stepIdx + 1}
+              </div>
+              <div className="flex-1">
+                <h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {language === 'fil' && step.instructionFil ? step.instructionFil : step.instruction}
+                </h3>
+              </div>
               {step.criticalStep && <Badge variant="destructive" className="text-xs"><AlertTriangle className="w-3 h-3 mr-1" /> Critical</Badge>}
             </div>
             <p className={`text-sm mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               {language === 'fil' && step.descriptionFil ? step.descriptionFil : step.description}
             </p>
-            <div className={`p-3 rounded-lg mb-3 ${darkMode ? 'bg-emerald-900/30 border border-emerald-500/30' : 'bg-emerald-50 border border-emerald-200'}`}>
+
+            {/* Correct Action */}
+            <div className={`p-4 rounded-xl mb-3 ${darkMode ? 'bg-emerald-900/30 border border-emerald-500/30' : 'bg-emerald-50 border border-emerald-200'}`}>
               <p className={`text-sm font-medium ${darkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>
-                <Check className="w-4 h-4 inline mr-1" /> Correct Action: {step.correctAction}
+                <Check className="w-4 h-4 inline mr-2" /> Correct Action
               </p>
+              <p className={`text-sm mt-1 ${darkMode ? 'text-emerald-300' : 'text-emerald-800'}`}>{step.correctAction}</p>
             </div>
+
+            {/* Common Mistakes (toggle) */}
             {step.commonMistakes.length > 0 && (
-              <div className={`p-3 rounded-lg ${darkMode ? 'bg-red-900/30 border border-red-500/30' : 'bg-red-50 border border-red-200'}`}>
-                <p className={`text-sm font-medium mb-1 ${darkMode ? 'text-red-400' : 'text-red-700'}`}>
-                  <X className="w-4 h-4 inline mr-1" /> {t('commonMistakes', language)}:
-                </p>
-                <ul className="list-disc list-inside text-sm text-red-600 space-y-1">
-                  {step.commonMistakes.map((m, i) => <li key={i}>{m}</li>)}
-                </ul>
+              <div>
+                <button onClick={() => setShowMistakes(!showMistakes)}
+                  className={`flex items-center gap-2 text-sm font-medium mb-2 ${darkMode ? 'text-red-400' : 'text-red-600'} hover:underline`}>
+                  <AlertTriangle className="w-4 h-4" />
+                  {t('commonMistakes', language)} ({step.commonMistakes.length})
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showMistakes ? 'rotate-180' : ''}`} />
+                </button>
+                {showMistakes && (
+                  <div className={`p-3 rounded-xl ${darkMode ? 'bg-red-900/30 border border-red-500/30' : 'bg-red-50 border border-red-200'}`}>
+                    <ul className="space-y-1.5">
+                      {step.commonMistakes.map((m, i) => (
+                        <li key={i} className={`text-sm flex items-start gap-2 ${darkMode ? 'text-red-300' : 'text-red-700'}`}>
+                          <X className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                          <span>{m}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
+
+            {/* Mark Step Complete */}
+            <div className="mt-4 flex justify-end">
+              <Button
+                variant={isStepComplete ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => toggleStepComplete(step.id)}
+                className={isStepComplete ? 'bg-emerald-600 hover:bg-emerald-700' : ''}>
+                {isStepComplete ? <><Check className="w-4 h-4 mr-1" /> Completed</> : <><CircleDot className="w-4 h-4 mr-1" /> Mark Complete</>}
+              </Button>
+            </div>
           </CardContent>
         </Card>
+
+        {/* Navigation */}
         <div className="flex items-center justify-between">
-          <Button variant="outline" onClick={() => setStepIdx(Math.max(0, stepIdx - 1))} disabled={stepIdx === 0}>
+          <Button variant="outline" onClick={() => { setStepIdx(Math.max(0, stepIdx - 1)); setShowMistakes(false) }} disabled={stepIdx === 0}>
             <ChevronLeft className="w-4 h-4 mr-1" /> {t('previous', language)}
           </Button>
-          <Button onClick={() => setStepIdx(Math.min(sim.steps.length - 1, stepIdx + 1))} disabled={stepIdx >= sim.steps.length - 1}
+          <Button onClick={() => { setStepIdx(Math.min(sim.steps.length - 1, stepIdx + 1)); setShowMistakes(false) }} disabled={stepIdx >= sim.steps.length - 1}
             className="bg-red-600 hover:bg-red-700">
             {t('next', language)} <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
+
         {/* Equipment & Precautions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Card className={darkMode ? 'bg-[#1b2838]/60 border-white/10' : ''}>
-            <CardContent className="p-3">
-              <p className={`font-semibold text-sm mb-2 ${darkMode ? 'text-white' : ''}`}>{t('equipment', language)}</p>
-              <ul className="space-y-1">
+          <Card className={`${darkMode ? 'bg-[#1b2838]/60 border-white/10' : ''} border-l-4 border-l-blue-500`}>
+            <CardContent className="p-4">
+              <p className={`font-semibold text-sm mb-3 flex items-center gap-2 ${darkMode ? 'text-white' : ''}`}>
+                <Bandage className="w-4 h-4 text-blue-500" /> {t('equipment', language)}
+              </p>
+              <ul className="space-y-2">
                 {(language === 'fil' && sim.equipmentFil ? sim.equipmentFil : sim.equipment).map((e, i) => (
-                  <li key={i} className={`text-xs flex items-center gap-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    <Plus className="w-3 h-3 text-blue-500" /> {e}
+                  <li key={i} className={`text-xs flex items-center gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    <Plus className="w-3 h-3 text-blue-500 flex-shrink-0" /> {e}
                   </li>
                 ))}
               </ul>
             </CardContent>
           </Card>
-          <Card className={darkMode ? 'bg-[#1b2838]/60 border-white/10' : ''}>
-            <CardContent className="p-3">
-              <p className={`font-semibold text-sm mb-2 ${darkMode ? 'text-white' : ''}`}>{t('precautions', language)}</p>
-              <ul className="space-y-1">
+          <Card className={`${darkMode ? 'bg-[#1b2838]/60 border-white/10' : ''} border-l-4 border-l-amber-500`}>
+            <CardContent className="p-4">
+              <p className={`font-semibold text-sm mb-3 flex items-center gap-2 ${darkMode ? 'text-white' : ''}`}>
+                <AlertTriangle className="w-4 h-4 text-amber-500" /> {t('precautions', language)}
+              </p>
+              <ul className="space-y-2">
                 {(language === 'fil' && sim.precautionsFil ? sim.precautionsFil : sim.precautions).map((p, i) => (
-                  <li key={i} className={`text-xs flex items-center gap-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                    <AlertTriangle className="w-3 h-3 text-amber-500" /> {p}
+                  <li key={i} className={`text-xs flex items-center gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    <AlertTriangle className="w-3 h-3 text-amber-500 flex-shrink-0" /> {p}
                   </li>
                 ))}
               </ul>
             </CardContent>
           </Card>
         </div>
+
+        {/* All Steps Overview */}
+        <Card className={darkMode ? 'bg-[#1b2838]/60 border-white/10' : ''}>
+          <CardHeader className="pb-2">
+            <CardTitle className={`text-sm font-semibold flex items-center gap-2 ${darkMode ? 'text-white' : ''}`}>
+              <ClipboardList className="w-4 h-4 text-purple-500" /> All Steps Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1.5 max-h-60 overflow-y-auto">
+              {sim.steps.map((s, i) => (
+                <button key={s.id} onClick={() => { setStepIdx(i); setShowMistakes(false) }}
+                  className={`w-full flex items-center gap-2 p-2 rounded-lg text-left transition-all text-xs ${
+                    i === stepIdx
+                      ? darkMode ? 'bg-red-900/30 border border-red-500/30' : 'bg-red-50 border border-red-200'
+                      : darkMode ? 'hover:bg-white/5' : 'hover:bg-gray-50'
+                  }`}>
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${
+                    completedSteps.has(s.id) ? 'bg-emerald-500 text-white' : s.criticalStep ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    {completedSteps.has(s.id) ? <Check className="w-3 h-3" /> : i + 1}
+                  </span>
+                  <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{s.instruction}</span>
+                  {s.criticalStep && <AlertTriangle className="w-3 h-3 text-red-500 ml-auto flex-shrink-0" />}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{t('simulations', language)}</h2>
+      {/* Header */}
+      <div className={`rounded-2xl p-6 ${darkMode ? 'bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border border-white/10' : 'bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100'}`}>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+            <Layers className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{t('simulations', language)}</h2>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Step-by-step procedure training</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Category Filter */}
+      <div className="flex flex-wrap gap-2">
+        {simCategories.map(c => (
+          <Button key={c} variant={catFilter === c ? 'default' : 'outline'} size="sm"
+            className={catFilter === c ? 'bg-blue-600 hover:bg-blue-700' : ''}
+            onClick={() => setCatFilter(c)}>
+            {c === 'all' ? t('all', language) : c.charAt(0).toUpperCase() + c.slice(1)}
+          </Button>
+        ))}
+      </div>
+
+      {/* Simulation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {simulations.map(s => (
-          <Card key={s.id} className={`cursor-pointer transition-all hover:scale-[1.01] ${darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''}`}
-            onClick={() => { setSelectedSim(s.id); setStepIdx(0) }}>
-            <CardContent className="p-4">
+        {filteredSims.map(s => (
+          <Card key={s.id} className={`cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg group ${darkMode ? 'bg-[#1b2838]/80 border-white/10 hover:border-blue-500/50' : 'border-gray-200 hover:border-blue-300'}`}
+            onClick={() => { setSelectedSim(s.id); setStepIdx(0); setCompletedSteps(new Set()) }}>
+            <CardContent className="p-5">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
-                  <Layers className="w-5 h-5 text-white" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                  <Layers className="w-6 h-6 text-white" />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     {language === 'fil' && s.titleFil ? s.titleFil : s.title}
                   </h3>
                   <div className="flex gap-2 mt-2">
-                    <Badge variant="secondary" className="text-xs">{s.category}</Badge>
+                    <Badge variant="secondary" className="text-xs capitalize">{s.category}</Badge>
                     <Badge variant="outline" className="text-xs">{s.difficulty}</Badge>
                     <Badge variant="outline" className="text-xs">{s.steps.length} steps</Badge>
                   </div>
+                  {/* Mini step preview */}
+                  <div className="flex gap-1 mt-2">
+                    {s.steps.slice(0, 8).map((st, i) => (
+                      <div key={i} className={`w-2 h-2 rounded-full ${st.criticalStep ? 'bg-red-400' : 'bg-blue-300'}`} />
+                    ))}
+                    {s.steps.length > 8 && <span className="text-xs text-gray-400">+{s.steps.length - 8}</span>}
+                  </div>
                 </div>
+                <Play className={`w-5 h-5 flex-shrink-0 ${darkMode ? 'text-gray-600' : 'text-gray-300'} group-hover:text-blue-500 transition-colors`} />
               </div>
             </CardContent>
           </Card>
@@ -1456,40 +1769,418 @@ function VisualizationPage() {
   const { darkMode, language } = useAppStore()
   const [catFilter, setCatFilter] = useState('all')
   const [selectedViz, setSelectedViz] = useState<string | null>(null)
+  const [activeLabel, setActiveLabel] = useState<number | null>(null)
+  const [showLabels, setShowLabels] = useState(true)
 
   const categories = useMemo(() => ['all', ...Array.from(new Set(visualizations.map(v => v.category)))], [])
   const filtered = useMemo(() => visualizations.filter(v => catFilter === 'all' || v.category === catFilter), [catFilter])
   const viz = selectedViz ? visualizations.find(v => v.id === selectedViz) : null
 
+  // SVG diagram renderers for each visualization type
+  const renderSVGDiagram = (vizId: string) => {
+    const labelColors = ['#e53935', '#0d47a1', '#2e7d32', '#f57c00', '#7b1fa2', '#00838f', '#c62828', '#1565c0']
+
+    switch (vizId) {
+      case 'viz-01': // Star of Life
+        return (
+          <svg viewBox="0 0 400 400" className="w-full max-w-md mx-auto">
+            <defs>
+              <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#0d47a1" />
+                <stop offset="100%" stopColor="#1565c0" />
+              </linearGradient>
+              <filter id="starShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="4" floodOpacity="0.3" />
+              </filter>
+            </defs>
+            <circle cx="200" cy="200" r="180" fill="none" stroke={darkMode ? '#ffffff20' : '#e0e0e0'} strokeWidth="2" strokeDasharray="8 4" />
+            {/* Six-pointed star */}
+            <polygon
+              points="200,40 230,140 330,140 250,200 280,300 200,240 120,300 150,200 70,140 170,140"
+              fill="url(#starGrad)" stroke="#0d47a1" strokeWidth="2"
+              filter="url(#starShadow)"
+              className="transition-all duration-300"
+            />
+            {/* Rod of Asclepius in center */}
+            <line x1="200" y1="120" x2="200" y2="280" stroke="white" strokeWidth="4" strokeLinecap="round" />
+            <path d="M200,150 Q220,160 215,175 Q210,185 200,180 Q190,170 195,160 Q200,155 200,150" fill="white" />
+            <path d="M200,180 Q220,190 215,205 Q210,215 200,210 Q190,200 195,190 Q200,185 200,180" fill="white" />
+            {/* Label points */}
+            {viz?.labels.map((label, i) => {
+              const angle = (i * 60 - 90) * (Math.PI / 180)
+              const x = 200 + Math.cos(angle) * 155
+              const y = 200 + Math.sin(angle) * 155
+              const tx = 200 + Math.cos(angle) * 185
+              const ty = 200 + Math.sin(angle) * 185
+              return (
+                <g key={i} className="cursor-pointer" onClick={() => setActiveLabel(activeLabel === i ? null : i)}>
+                  <circle cx={x} cy={y} r="8" fill={labelColors[i]} stroke="white" strokeWidth="2"
+                    className="transition-all duration-200" style={{ transform: activeLabel === i ? 'scale(1.3)' : 'scale(1)', transformOrigin: `${x}px ${y}px` }} />
+                  <text x={tx} y={ty} textAnchor="middle" dominantBaseline="middle"
+                    fill={darkMode ? '#e0e0e0' : '#333'} fontSize="10" fontWeight="bold"
+                    className="pointer-events-none select-none">
+                    {language === 'fil' && label.nameFil ? label.nameFil : label.name}
+                  </text>
+                  {activeLabel === i && (
+                    <rect x={tx - 60} y={ty + 10} width="120" height="32" rx="6" fill={darkMode ? '#1b2838' : 'white'} stroke={labelColors[i]} strokeWidth="1.5" />
+                  )}
+                  {activeLabel === i && (
+                    <text x={tx} y={ty + 30} textAnchor="middle" dominantBaseline="middle"
+                      fill={darkMode ? '#aaa' : '#666'} fontSize="7" className="pointer-events-none select-none">
+                      {label.description.substring(0, 25)}...
+                    </text>
+                  )}
+                </g>
+              )
+            })}
+          </svg>
+        )
+      case 'viz-02': // Human Heart
+        return (
+          <svg viewBox="0 0 400 420" className="w-full max-w-md mx-auto">
+            <defs>
+              <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#c62828" />
+                <stop offset="100%" stopColor="#e53935" />
+              </linearGradient>
+              <filter id="heartGlow">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+            {/* Heart shape */}
+            <path d="M200,380 Q60,280 60,160 Q60,60 140,60 Q180,60 200,100 Q220,60 260,60 Q340,60 340,160 Q340,280 200,380Z"
+              fill="url(#heartGrad)" stroke="#b71c1c" strokeWidth="2" filter="url(#heartGlow)" />
+            {/* Septum */}
+            <line x1="200" y1="80" x2="200" y2="320" stroke="#8e0000" strokeWidth="3" />
+            {/* Right Atrium */}
+            <ellipse cx="155" cy="130" rx="35" ry="40" fill="#ef5350" stroke="#b71c1c" strokeWidth="1.5"
+              className="cursor-pointer transition-all duration-200" style={{ opacity: activeLabel === 0 ? 1 : 0.8 }}
+              onClick={() => setActiveLabel(activeLabel === 0 ? null : 0)} />
+            {/* Right Ventricle */}
+            <ellipse cx="165" cy="230" rx="30" ry="50" fill="#f44336" stroke="#b71c1c" strokeWidth="1.5"
+              className="cursor-pointer transition-all duration-200" style={{ opacity: activeLabel === 1 ? 1 : 0.8 }}
+              onClick={() => setActiveLabel(activeLabel === 1 ? null : 1)} />
+            {/* Left Atrium */}
+            <ellipse cx="245" cy="130" rx="35" ry="40" fill="#d32f2f" stroke="#b71c1c" strokeWidth="1.5"
+              className="cursor-pointer transition-all duration-200" style={{ opacity: activeLabel === 2 ? 1 : 0.8 }}
+              onClick={() => setActiveLabel(activeLabel === 2 ? null : 2)} />
+            {/* Left Ventricle */}
+            <ellipse cx="235" cy="240" rx="30" ry="55" fill="#c62828" stroke="#b71c1c" strokeWidth="1.5"
+              className="cursor-pointer transition-all duration-200" style={{ opacity: activeLabel === 3 ? 1 : 0.8 }}
+              onClick={() => setActiveLabel(activeLabel === 3 ? null : 3)} />
+            {/* Aorta */}
+            <path d="M230,90 Q240,50 270,40 Q300,30 310,50 Q320,70 300,80" fill="none" stroke="#b71c1c" strokeWidth="4" strokeLinecap="round"
+              className="cursor-pointer" onClick={() => setActiveLabel(activeLabel === 4 ? null : 4)} />
+            {/* Pulmonary Artery */}
+            <path d="M170,90 Q160,50 130,40 Q100,30 90,50" fill="none" stroke="#0d47a1" strokeWidth="4" strokeLinecap="round"
+              className="cursor-pointer" onClick={() => setActiveLabel(activeLabel === 5 ? null : 5)} />
+            {/* Blood flow arrows */}
+            <path d="M155,170 L155,190" stroke="#0d47a1" strokeWidth="2" fill="none" markerEnd="url(#arrowBlue)" />
+            <path d="M245,170 L245,195" stroke="#e53935" strokeWidth="2" fill="none" />
+            <defs>
+              <marker id="arrowBlue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+                <path d="M0,0 L10,5 L0,10 Z" fill="#0d47a1" />
+              </marker>
+            </defs>
+            {/* Labels */}
+            {viz?.labels.map((label, i) => {
+              const positions = [
+                { x: 75, y: 130 }, { x: 75, y: 230 }, { x: 325, y: 130 }, { x: 325, y: 240 },
+                { x: 330, y: 55 }, { x: 70, y: 55 }
+              ]
+              const pos = positions[i] || { x: 200, y: 200 }
+              return (
+                <g key={i} className="cursor-pointer" onClick={() => setActiveLabel(activeLabel === i ? null : i)}>
+                  <rect x={pos.x - 45} y={pos.y - 10} width="90" height="20" rx="10"
+                    fill={activeLabel === i ? labelColors[i] : (darkMode ? '#1b2838' : 'white')}
+                    stroke={labelColors[i]} strokeWidth="1.5" className="transition-all duration-200" />
+                  <text x={pos.x} y={pos.y + 4} textAnchor="middle" dominantBaseline="middle"
+                    fill={activeLabel === i ? 'white' : (darkMode ? '#e0e0e0' : '#333')}
+                    fontSize="9" fontWeight="600" className="pointer-events-none select-none">
+                    {language === 'fil' && label.nameFil ? label.nameFil : label.name}
+                  </text>
+                </g>
+              )
+            })}
+          </svg>
+        )
+      case 'viz-03': // CPR Hand Placement
+        return (
+          <svg viewBox="0 0 400 440" className="w-full max-w-md mx-auto">
+            <defs>
+              <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#e8d5c4" />
+                <stop offset="100%" stopColor="#d4b896" />
+              </linearGradient>
+            </defs>
+            {/* Torso outline */}
+            <ellipse cx="200" cy="260" rx="110" ry="160" fill="url(#bodyGrad)" stroke="#bcaaa4" strokeWidth="2" />
+            {/* Neck */}
+            <rect x="175" y="85" width="50" height="30" rx="10" fill="url(#bodyGrad)" stroke="#bcaaa4" strokeWidth="2" />
+            {/* Head */}
+            <ellipse cx="200" cy="60" rx="40" ry="40" fill="url(#bodyGrad)" stroke="#bcaaa4" strokeWidth="2" />
+            {/* Sternum line */}
+            <line x1="200" y1="120" x2="200" y2="380" stroke="#90a4ae" strokeWidth="2" strokeDasharray="6 3" />
+            {/* Ribs */}
+            <path d="M140,160 Q200,150 260,160" fill="none" stroke="#bcaaa4" strokeWidth="1.5" />
+            <path d="M130,190 Q200,178 270,190" fill="none" stroke="#bcaaa4" strokeWidth="1.5" />
+            <path d="M128,220 Q200,206 272,220" fill="none" stroke="#bcaaa4" strokeWidth="1.5" />
+            <path d="M130,250 Q200,234 270,250" fill="none" stroke="#bcaaa4" strokeWidth="1.5" />
+            <path d="M135,280 Q200,262 265,280" fill="none" stroke="#bcaaa4" strokeWidth="1.5" />
+            {/* Xiphoid process marker */}
+            <path d="M200,310 L195,330 L205,330 Z" fill="#e53935" stroke="#b71c1c" strokeWidth="1"
+              className="cursor-pointer" onClick={() => setActiveLabel(activeLabel === 3 ? null : 3)} />
+            {/* Compression zone highlight */}
+            <rect x="170" y="200" width="60" height="80" rx="8"
+              fill="#e5393520" stroke="#e53935" strokeWidth="2" strokeDasharray="8 4"
+              className="cursor-pointer animate-pulse" onClick={() => setActiveLabel(activeLabel === 2 ? null : 2)} />
+            {/* Hand placement */}
+            <g className="cursor-pointer" onClick={() => setActiveLabel(activeLabel === 0 ? null : 0)}>
+              <ellipse cx="200" cy="230" rx="22" ry="28" fill="#0d47a180" stroke="#0d47a1" strokeWidth="2"
+                style={{ opacity: activeLabel === 0 ? 1 : 0.7 }} className="transition-all duration-200" />
+              <ellipse cx="200" cy="220" rx="18" ry="10" fill="#1565c0" stroke="#0d47a1" strokeWidth="1" />
+              {/* Interlocked fingers indicator */}
+              <path d="M178,230 Q175,240 180,250" fill="none" stroke="white" strokeWidth="2" />
+              <path d="M222,230 Q225,240 220,250" fill="none" stroke="white" strokeWidth="2" />
+            </g>
+            {/* Labels */}
+            {viz?.labels.map((label, i) => {
+              const positions = [{ x: 320, y: 230 }, { x: 320, y: 270 }, { x: 200, y: 195 }, { x: 200, y: 345 }]
+              const pos = positions[i] || { x: 200, y: 400 }
+              return (
+                <g key={i} onClick={() => setActiveLabel(activeLabel === i ? null : i)} className="cursor-pointer">
+                  <line x1={pos.x < 200 ? 170 : pos.x > 200 ? 230 : 200} y1={pos.y} x2={pos.x} y2={pos.y}
+                    stroke={labelColors[i]} strokeWidth="1" strokeDasharray="4 2" />
+                  <rect x={pos.x - 48} y={pos.y - 10} width="96" height="20" rx="10"
+                    fill={activeLabel === i ? labelColors[i] : (darkMode ? '#1b2838' : 'white')}
+                    stroke={labelColors[i]} strokeWidth="1.5" className="transition-all duration-200" />
+                  <text x={pos.x} y={pos.y + 4} textAnchor="middle" dominantBaseline="middle"
+                    fill={activeLabel === i ? 'white' : (darkMode ? '#e0e0e0' : '#333')}
+                    fontSize="8" fontWeight="600" className="pointer-events-none select-none">
+                    {language === 'fil' && label.nameFil ? label.nameFil : label.name}
+                  </text>
+                </g>
+              )
+            })}
+            {/* Depth indicator */}
+            <g>
+              <line x1="290" y1="200" x2="290" y2="280" stroke="#e53935" strokeWidth="2" />
+              <line x1="285" y1="200" x2="295" y2="200" stroke="#e53935" strokeWidth="2" />
+              <line x1="285" y1="280" x2="295" y2="280" stroke="#e53935" strokeWidth="2" />
+              <text x="298" y="245" fill="#e53935" fontSize="9" fontWeight="bold" className="select-none">&gt;2 in</text>
+            </g>
+          </svg>
+        )
+      case 'viz-04': // AED Pad Placement
+        return (
+          <svg viewBox="0 0 400 440" className="w-full max-w-md mx-auto">
+            <defs>
+              <linearGradient id="aedBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#e8d5c4" />
+                <stop offset="100%" stopColor="#d4b896" />
+              </linearGradient>
+              <linearGradient id="padGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" />
+                <stop offset="100%" stopColor="#e0e0e0" />
+              </linearGradient>
+            </defs>
+            {/* Torso */}
+            <ellipse cx="200" cy="260" rx="110" ry="160" fill="url(#aedBodyGrad)" stroke="#bcaaa4" strokeWidth="2" />
+            {/* Neck */}
+            <rect x="175" y="85" width="50" height="30" rx="10" fill="url(#aedBodyGrad)" stroke="#bcaaa4" strokeWidth="2" />
+            {/* Head */}
+            <ellipse cx="200" cy="60" rx="40" ry="40" fill="url(#aedBodyGrad)" stroke="#bcaaa4" strokeWidth="2" />
+            {/* Collarbone */}
+            <line x1="130" y1="130" x2="270" y2="130" stroke="#bcaaa4" strokeWidth="1.5" />
+            {/* Sternum */}
+            <line x1="200" y1="130" x2="200" y2="380" stroke="#90a4ae" strokeWidth="2" strokeDasharray="6 3" />
+            {/* Upper Right Pad */}
+            <g className="cursor-pointer" onClick={() => setActiveLabel(activeLabel === 0 ? null : 0)}>
+              <rect x="130" y="140" width="55" height="70" rx="10"
+                fill={activeLabel === 0 ? '#e5393580' : 'url(#padGrad)'} stroke="#e53935" strokeWidth="2"
+                className="transition-all duration-200" />
+              <text x="157" y="180" textAnchor="middle" fill="#e53935" fontSize="9" fontWeight="bold" className="pointer-events-none select-none">R1</text>
+              {/* Electrode lines */}
+              <line x1="157" y1="155" x2="157" y2="170" stroke="#e53935" strokeWidth="1" />
+              <circle cx="157" cy="153" r="3" fill="#e53935" />
+            </g>
+            {/* Lower Left Pad */}
+            <g className="cursor-pointer" onClick={() => setActiveLabel(activeLabel === 1 ? null : 1)}>
+              <rect x="215" y="270" width="55" height="70" rx="10"
+                fill={activeLabel === 1 ? '#0d47a180' : 'url(#padGrad)'} stroke="#0d47a1" strokeWidth="2"
+                className="transition-all duration-200" />
+              <text x="242" y="310" textAnchor="middle" fill="#0d47a1" fontSize="9" fontWeight="bold" className="pointer-events-none select-none">L2</text>
+              <line x1="242" y1="285" x2="242" y2="300" stroke="#0d47a1" strokeWidth="1" />
+              <circle cx="242" cy="283" r="3" fill="#0d47a1" />
+            </g>
+            {/* Current path through heart */}
+            <path d="M157,210 Q180,240 242,270" fill="none" stroke="#ff9800" strokeWidth="2" strokeDasharray="6 3"
+              className="animate-pulse" />
+            {/* Heart center marker */}
+            <g className="cursor-pointer" onClick={() => setActiveLabel(activeLabel === 2 ? null : 2)}>
+              <circle cx="195" cy="230" r="15" fill="#ff980020" stroke="#ff9800" strokeWidth="1.5" className="animate-pulse" />
+              <text x="195" y="234" textAnchor="middle" fill="#ff9800" fontSize="7" fontWeight="bold" className="pointer-events-none select-none">♥</text>
+            </g>
+            {/* Labels */}
+            {viz?.labels.map((label, i) => {
+              const positions = [{ x: 80, y: 175 }, { x: 320, y: 305 }, { x: 320, y: 230 }]
+              const pos = positions[i] || { x: 200, y: 400 }
+              return (
+                <g key={i} onClick={() => setActiveLabel(activeLabel === i ? null : i)} className="cursor-pointer">
+                  <rect x={pos.x - 48} y={pos.y - 10} width="96" height="20" rx="10"
+                    fill={activeLabel === i ? labelColors[i] : (darkMode ? '#1b2838' : 'white')}
+                    stroke={labelColors[i]} strokeWidth="1.5" className="transition-all duration-200" />
+                  <text x={pos.x} y={pos.y + 4} textAnchor="middle" dominantBaseline="middle"
+                    fill={activeLabel === i ? 'white' : (darkMode ? '#e0e0e0' : '#333')}
+                    fontSize="8" fontWeight="600" className="pointer-events-none select-none">
+                    {language === 'fil' && label.nameFil ? label.nameFil : label.name}
+                  </text>
+                </g>
+              )
+            })}
+          </svg>
+        )
+      case 'viz-05': // Pulse Points
+        return (
+          <svg viewBox="0 0 400 500" className="w-full max-w-md mx-auto">
+            <defs>
+              <linearGradient id="pulseBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#e8d5c4" />
+                <stop offset="100%" stopColor="#d4b896" />
+              </linearGradient>
+            </defs>
+            {/* Body outline */}
+            <ellipse cx="200" cy="60" rx="30" ry="35" fill="url(#pulseBodyGrad)" stroke="#bcaaa4" strokeWidth="2" />
+            <rect x="185" y="90" width="30" height="20" rx="5" fill="url(#pulseBodyGrad)" stroke="#bcaaa4" strokeWidth="2" />
+            <rect x="150" y="110" width="100" height="140" rx="15" fill="url(#pulseBodyGrad)" stroke="#bcaaa4" strokeWidth="2" />
+            {/* Arms */}
+            <path d="M150,130 L70,220 L65,240" fill="none" stroke="#bcaaa4" strokeWidth="2" strokeLinecap="round" />
+            <path d="M250,130 L330,220 L335,240" fill="none" stroke="#bcaaa4" strokeWidth="2" strokeLinecap="round" />
+            {/* Legs */}
+            <path d="M175,250 L165,400 L160,460" fill="none" stroke="#bcaaa4" strokeWidth="2" strokeLinecap="round" />
+            <path d="M225,250 L235,400 L240,460" fill="none" stroke="#bcaaa4" strokeWidth="2" strokeLinecap="round" />
+            {/* Pulse point markers */}
+            {viz?.labels.map((label, i) => {
+              const points = [
+                { x: 215, y: 80, label: 'Carotid' },   // Neck
+                { x: 75, y: 230, label: 'Radial' },     // Wrist
+                { x: 110, y: 170, label: 'Brachial' },  // Upper arm
+                { x: 190, y: 270, label: 'Femoral' },   // Groin
+                { x: 170, y: 430, label: 'Post.Tib.' }, // Ankle
+                { x: 175, y: 460, label: 'Dor.Ped.' },  // Foot
+              ]
+              const pt = points[i] || { x: 200, y: 300 }
+              const isActive = activeLabel === i
+              return (
+                <g key={i} className="cursor-pointer" onClick={() => setActiveLabel(isActive ? null : i)}>
+                  {/* Pulse ring animation */}
+                  {isActive && <circle cx={pt.x} cy={pt.y} r="16" fill="none" stroke={labelColors[i]} strokeWidth="1.5" className="animate-ping" style={{ animationDuration: '1s' }} />}
+                  <circle cx={pt.x} cy={pt.y} r="10" fill={isActive ? labelColors[i] : labelColors[i] + '40'} stroke={labelColors[i]} strokeWidth="2"
+                    className="transition-all duration-200" />
+                  <text x={pt.x} y={pt.y + 3} textAnchor="middle" fill="white" fontSize="7" fontWeight="bold" className="pointer-events-none select-none">{i + 1}</text>
+                  {/* Label text */}
+                  <rect x={pt.x + 16} y={pt.y - 8} width="80" height="16" rx="8"
+                    fill={isActive ? labelColors[i] : (darkMode ? '#1b2838' : 'white')}
+                    stroke={labelColors[i]} strokeWidth="1" className="transition-all duration-200" />
+                  <text x={pt.x + 56} y={pt.y + 3} textAnchor="middle" dominantBaseline="middle"
+                    fill={isActive ? 'white' : (darkMode ? '#e0e0e0' : '#333')}
+                    fontSize="7" fontWeight="600" className="pointer-events-none select-none">
+                    {language === 'fil' && label.nameFil ? label.nameFil : label.name}
+                  </text>
+                </g>
+              )
+            })}
+          </svg>
+        )
+      default: // Generic visualization
+        return (
+          <svg viewBox="0 0 400 400" className="w-full max-w-md mx-auto">
+            <circle cx="200" cy="200" r="150" fill={darkMode ? '#1b2838' : '#f5f5f5'} stroke={darkMode ? '#ffffff20' : '#e0e0e0'} strokeWidth="2" />
+            {viz?.labels.map((label, i) => {
+              const angle = (i * (360 / viz.labels.length) - 90) * (Math.PI / 180)
+              const x = 200 + Math.cos(angle) * 120
+              const y = 200 + Math.sin(angle) * 120
+              const isActive = activeLabel === i
+              return (
+                <g key={i} className="cursor-pointer" onClick={() => setActiveLabel(isActive ? null : i)}>
+                  <circle cx={x} cy={y} r="12" fill={labelColors[i] + (isActive ? '' : '60')} stroke={labelColors[i]} strokeWidth="2" className="transition-all duration-200" />
+                  <text x={x} y={y + 3} textAnchor="middle" fill="white" fontSize="8" fontWeight="bold" className="pointer-events-none select-none">{i + 1}</text>
+                  <text x={200 + Math.cos(angle) * 170} y={200 + Math.sin(angle) * 170 + 4} textAnchor="middle"
+                    fill={darkMode ? '#e0e0e0' : '#333'} fontSize="9" fontWeight="500" className="pointer-events-none select-none">
+                    {language === 'fil' && label.nameFil ? label.nameFil : label.name}
+                  </text>
+                </g>
+              )
+            })}
+          </svg>
+        )
+    }
+  }
+
   if (viz) {
     return (
-      <div className="space-y-4 max-w-2xl mx-auto">
-        <Button variant="ghost" size="sm" onClick={() => setSelectedViz(null)}>
-          <ArrowLeft className="w-4 h-4 mr-1" /> Back
-        </Button>
-        <Card className={darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''}>
-          <CardHeader>
-            <CardTitle className={darkMode ? 'text-white' : ''}>
-              {language === 'fil' && viz.titleFil ? viz.titleFil : viz.title}
-            </CardTitle>
-            <CardDescription className={darkMode ? 'text-gray-400' : ''}>
-              {language === 'fil' && viz.descriptionFil ? viz.descriptionFil : viz.description}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {viz.labels.map((label, i) => (
-                <div key={i} className={`flex items-start gap-3 p-3 rounded-lg ${darkMode ? 'bg-black/30' : 'bg-gray-50'}`}>
-                  <div className="w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</div>
-                  <div>
-                    <p className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {language === 'fil' && label.nameFil ? label.nameFil : label.name}
-                    </p>
-                    <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{label.description}</p>
-                  </div>
-                </div>
-              ))}
+      <div className="space-y-4 max-w-3xl mx-auto">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="ghost" size="sm" onClick={() => { setSelectedViz(null); setActiveLabel(null) }}>
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back
+          </Button>
+          <Badge className="bg-purple-600">{viz.category}</Badge>
+        </div>
+        <Card className={`overflow-hidden ${darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''}`}>
+          <CardHeader className={`pb-2 ${darkMode ? 'bg-gradient-to-r from-purple-900/30 to-blue-900/30' : 'bg-gradient-to-r from-purple-50 to-blue-50'}`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className={darkMode ? 'text-white' : ''}>
+                  {language === 'fil' && viz.titleFil ? viz.titleFil : viz.title}
+                </CardTitle>
+                <CardDescription className={darkMode ? 'text-gray-400' : ''}>
+                  {language === 'fil' && viz.descriptionFil ? viz.descriptionFil : viz.description}
+                </CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setShowLabels(!showLabels)}>
+                {showLabels ? <Eye className="w-4 h-4" /> : <Eye className="w-4 h-4 opacity-50" />}
+              </Button>
             </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            {/* Interactive SVG Diagram */}
+            <div className={`rounded-xl p-4 mb-4 ${darkMode ? 'bg-[#0d1b2a]/50' : 'bg-gray-50'}`}>
+              {renderSVGDiagram(viz.id)}
+            </div>
+            {/* Detailed Labels */}
+            {showLabels && (
+              <div className="space-y-2">
+                <h4 className={`text-sm font-semibold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <Crosshair className="w-4 h-4 text-purple-500" /> Key Structures
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {viz.labels.map((label, i) => {
+                    const labelColors = ['#e53935', '#0d47a1', '#2e7d32', '#f57c00', '#7b1fa2', '#00838f', '#c62828', '#1565c0']
+                    return (
+                      <button key={i}
+                        onClick={() => setActiveLabel(activeLabel === i ? null : i)}
+                        className={`flex items-start gap-3 p-3 rounded-xl text-left transition-all duration-200 ${
+                          activeLabel === i
+                            ? `${darkMode ? 'bg-purple-900/40 border-purple-500/50' : 'bg-purple-50 border-purple-300'} border-2`
+                            : `${darkMode ? 'bg-black/20 border-white/5 hover:bg-black/30' : 'bg-white border-gray-100 hover:border-gray-300'} border`
+                        }`}>
+                        <div className="w-7 h-7 rounded-full text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-bold"
+                          style={{ backgroundColor: labelColors[i] || '#666' }}>
+                          {i + 1}
+                        </div>
+                        <div className="min-w-0">
+                          <p className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            {language === 'fil' && label.nameFil ? label.nameFil : label.name}
+                          </p>
+                          <p className={`text-xs mt-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{label.description}</p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -1498,34 +2189,48 @@ function VisualizationPage() {
 
   return (
     <div className="space-y-4">
-      <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{t('visualization', language)}</h2>
+      <div className={`rounded-2xl p-6 ${darkMode ? 'bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-white/10' : 'bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100'}`}>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center">
+            <Eye className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{t('visualization', language)}</h2>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Interactive diagrams and anatomical references</p>
+          </div>
+        </div>
+      </div>
       <div className="flex flex-wrap gap-2">
         {categories.map(c => (
           <Button key={c} variant={catFilter === c ? 'default' : 'outline'} size="sm"
-            className={catFilter === c ? 'bg-red-600' : ''}
+            className={catFilter === c ? 'bg-purple-600 hover:bg-purple-700' : ''}
             onClick={() => setCatFilter(c)}>
             {c === 'all' ? t('all', language) : c}
           </Button>
         ))}
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {filtered.map(v => (
-          <Card key={v.id} className={`cursor-pointer transition-all hover:scale-[1.01] ${darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''}`}
-            onClick={() => setSelectedViz(v.id)}>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center flex-shrink-0">
-                  <Eye className="w-5 h-5 text-white" />
+          <Card key={v.id} className={`cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg group ${darkMode ? 'bg-[#1b2838]/80 border-white/10 hover:border-purple-500/50' : 'border-gray-200 hover:border-purple-300'}`}
+            onClick={() => { setSelectedViz(v.id); setActiveLabel(null) }}>
+            <CardContent className="p-5">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                  <Eye className="w-6 h-6 text-white" />
                 </div>
-                <div>
-                  <h3 className={`font-semibold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <div className="flex-1 min-w-0">
+                  <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     {language === 'fil' && v.titleFil ? v.titleFil : v.title}
                   </h3>
-                  <div className="flex gap-2 mt-1">
+                  <p className={`text-xs mt-1 line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {language === 'fil' && v.descriptionFil ? v.descriptionFil : v.description}
+                  </p>
+                  <div className="flex gap-2 mt-2">
                     <Badge variant="secondary" className="text-xs">{v.category}</Badge>
                     <Badge variant="outline" className="text-xs">{v.labels.length} labels</Badge>
                   </div>
                 </div>
+                <ArrowUpRight className={`w-5 h-5 flex-shrink-0 ${darkMode ? 'text-gray-600' : 'text-gray-300'} group-hover:text-purple-500 transition-colors`} />
               </div>
             </CardContent>
           </Card>
@@ -2060,12 +2765,10 @@ function SettingsPage() {
       <Card className={darkMode ? 'bg-[#1b2838]/80 border-white/10' : ''}>
         <CardContent className="p-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-600 to-blue-800 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
+            <img src="/logo.png" alt="PIO DURAN EMS NCII" className="w-12 h-12 rounded-xl object-contain" />
             <div>
-              <p className={`font-bold ${darkMode ? 'text-white' : ''}`}>EMS NC II Reviewer</p>
-              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Version 1.0.0</p>
+              <p className={`font-bold ${darkMode ? 'text-white' : ''}`}>PIO DURAN EMS NCII Reviewer</p>
+              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Version 2.0.0</p>
             </div>
           </div>
           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -2145,9 +2848,7 @@ export default function EMSReviewerApp() {
                 <Menu className="w-5 h-5" />
               </Button>
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-600 to-blue-800 flex items-center justify-center">
-                  <Shield className="w-3.5 h-3.5 text-white" />
-                </div>
+                <img src="/logo.png" alt="Logo" className="w-7 h-7 rounded object-contain" />
                 <h1 className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   {t(currentPage, language)}
                 </h1>
@@ -2172,7 +2873,7 @@ export default function EMSReviewerApp() {
           <footer className={`px-4 py-3 text-center text-xs border-t ${
             darkMode ? 'border-white/10 text-gray-500' : 'border-gray-200 text-gray-400'
           }`}>
-            EMS NC II Reviewer • Study Hard, Save Lives • {new Date().getFullYear()}
+            PIO DURAN EMS NCII Reviewer • Study Hard, Save Lives • {new Date().getFullYear()}
           </footer>
         </div>
       </div>
