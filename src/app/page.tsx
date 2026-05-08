@@ -534,21 +534,29 @@ function AssessmentPage() {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [])
 
-  useEffect(() => {
-    if (currentAssessment && currentAssessment.timeLimit > 0 && !showResults) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            if (timerRef.current) clearInterval(timerRef.current)
-            handleFinish()
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-      return () => { if (timerRef.current) clearInterval(timerRef.current) }
-    }
-  }, [currentAssessment && !showResults, handleFinish])
+  const handleFinish = useCallback(() => {
+    if (!currentAssessment) return
+    if (timerRef.current) clearInterval(timerRef.current)
+    const correct = currentAssessment.answers.reduce((acc, ans, idx) => {
+      if (ans === currentAssessment.questions[idx].correctAnswer) return acc + 1
+      return acc
+    }, 0)
+    const total = currentAssessment.questions.length
+    const pct = Math.round((correct / total) * 100)
+    const timeTaken = Math.round((Date.now() - currentAssessment.startTime) / 1000)
+    finishAssessment({
+      id: `result-${Date.now()}`, score: pct, total, date: new Date().toISOString(),
+      area: config.area, timeTaken, answers: currentAssessment.answers
+    })
+    addCompletedQuiz({ quizId: `quiz-${Date.now()}`, score: pct, date: new Date().toISOString() })
+    addStudyHistoryEntry({ date: new Date().toLocaleDateString(), page: 'assessment', topic: `Assessment: ${config.area} - ${pct}%` })
+    currentAssessment.questions.forEach((q, idx) => {
+      if (currentAssessment.answers[idx] !== q.correctAnswer) {
+        addWeakArea(q.area)
+      }
+    })
+    setShowResults(true)
+  }, [currentAssessment, config.area, finishAssessment, addCompletedQuiz, addStudyHistoryEntry, addWeakArea])
 
   const startAssessment = () => {
     let pool = questions
@@ -587,29 +595,21 @@ function AssessmentPage() {
     setAnsweredCurrent(currentAssessment.answers[currentAssessment.currentQuestionIndex - 1] !== null)
   }
 
-  const handleFinish = useCallback(() => {
-    if (!currentAssessment) return
-    if (timerRef.current) clearInterval(timerRef.current)
-    const correct = currentAssessment.answers.reduce((acc, ans, idx) => {
-      if (ans === currentAssessment.questions[idx].correctAnswer) return acc + 1
-      return acc
-    }, 0)
-    const total = currentAssessment.questions.length
-    const pct = Math.round((correct / total) * 100)
-    const timeTaken = Math.round((Date.now() - currentAssessment.startTime) / 1000)
-    finishAssessment({
-      id: `result-${Date.now()}`, score: pct, total, date: new Date().toISOString(),
-      area: config.area, timeTaken, answers: currentAssessment.answers
-    })
-    addCompletedQuiz({ quizId: `quiz-${Date.now()}`, score: pct, date: new Date().toISOString() })
-    addStudyHistoryEntry({ date: new Date().toLocaleDateString(), page: 'assessment', topic: `Assessment: ${config.area} - ${pct}%` })
-    currentAssessment.questions.forEach((q, idx) => {
-      if (currentAssessment.answers[idx] !== q.correctAnswer) {
-        addWeakArea(q.area)
-      }
-    })
-    setShowResults(true)
-  }, [currentAssessment, config.area, finishAssessment, addCompletedQuiz, addStudyHistoryEntry, addWeakArea])
+  useEffect(() => {
+    if (currentAssessment && currentAssessment.timeLimit > 0 && !showResults) {
+      timerRef.current = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            if (timerRef.current) clearInterval(timerRef.current)
+            handleFinish()
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      return () => { if (timerRef.current) clearInterval(timerRef.current) }
+    }
+  }, [currentAssessment && !showResults, handleFinish])
 
   // Results View
   if (showResults && currentAssessment === null) {
