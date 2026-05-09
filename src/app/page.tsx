@@ -180,14 +180,14 @@ function Sidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className={`hidden lg:flex flex-col w-64 flex-shrink-0 h-screen sticky top-0 border-r overflow-hidden ${
+      <aside className={`hidden lg:flex flex-col w-64 flex-shrink-0 h-screen sticky top-0 border-r overflow-y-auto ${
         darkMode ? 'bg-[#0d1b2a] border-white/10' : 'bg-white border-gray-200'
       }`}>
         {sidebarContent}
       </aside>
       {/* Mobile sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className={`w-72 p-0 h-full overflow-hidden ${darkMode ? 'bg-[#0d1b2a]' : 'bg-white'}`}>
+        <SheetContent side="left" className={`w-72 p-0 h-full overflow-y-auto ${darkMode ? 'bg-[#0d1b2a]' : 'bg-white'}`}>
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation</SheetTitle>
             <SheetDescription>Main navigation menu</SheetDescription>
